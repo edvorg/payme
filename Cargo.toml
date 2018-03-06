@@ -1,0 +1,6 @@
+[package]
+name = "payme"
+version = "0.1.0"
+authors = ["Edward Knyshov <edvorg@gmail.com>"]
+
+[dependencies]
