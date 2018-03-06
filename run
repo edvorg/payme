@@ -1,0 +1,26 @@
+#! /bin/bash
+
+set -e
+
+MOUNT_DIR=`realpath ${1}`
+WORK_DIR=${2}
+COMMAND=${3}
+
+echo "running builder mounting '${MOUNT_DIR}' exec '${COMMAND}' in '${WORK_DIR}'"
+
+mkdir -p ~/.m2
+mkdir -p ~/.lein
+mkdir -p ~/.gradle
+
+GROUP_ID=`id -g`
+USER_ID=`id -u`
+GROUP_NAME=`id -g -n`
+USER_NAME=`id -u -n`
+
+docker run --rm -t --net=host --hostname payme \
+       -v ~/.m2:/home/${USER}/.m2 \
+       -v ~/.lein:/home/${USER}/.lein \
+       -v ~/.gradle:/home/${USER}/.gradle \
+       -v ${MOUNT_DIR}:/in \
+       -v /var/run/docker.sock:/var/run/docker.sock \
+       payme sh -c "chmod o+w /var/run/docker.sock && groupadd -f -g ${GROUP_ID} ${GROUP_NAME} && useradd --shell /bin/bash -u ${USER_ID} -g ${GROUP_ID} -o -c \"\" ${USER_NAME} && cd ${WORK_DIR} && exec gosu ${USER_NAME} sh -c \"${COMMAND}\""

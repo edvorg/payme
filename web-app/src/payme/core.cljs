@@ -1,12 +1,14 @@
 (ns payme.core
   (:require [reagent.core :as reagent :refer [atom cursor]]
             [cljs.core.async :refer [go <! timeout]]
-            [cljs-http.client :as http])
+            [cljs-http.client :as http]
+            [clojure.string :as s])
   (:require-macros [cljs.core.async :refer [go]]))
 
 (enable-console-print!)
 
-(def app-state (atom {:messages []}))
+(def app-state (atom {:messages []
+                      :params {}}))
 
 (defn show-message [component]
   (swap! app-state update :messages conj component))
@@ -16,6 +18,7 @@
 (declare client-email-view)
 (declare task-view)
 (declare hours-view)
+(declare rate-view)
 (declare company-view)
 (declare company-address-view)
 (declare client-company-view)
@@ -89,6 +92,18 @@
                 :on-change (fn [e]
                              (reset! hours (.. e -target -value)))
                 :auto-focus true
+                :on-key-press (on-enter #(show-message [rate-view]))}]])))
+
+(defn rate-view []
+  (let [rate (cursor app-state [:params :rate])]
+    (fn []
+      [:div.card.rate
+       [:label "What is your hourly rate?"]
+       [:input {:type :string
+                :value @rate
+                :on-change (fn [e]
+                             (reset! rate (.. e -target -value)))
+                :auto-focus true
                 :on-key-press (on-enter #(show-message [company-view]))}]])))
 
 (defn company-view []
@@ -156,11 +171,22 @@
 (defn send-invoice []
   (show-message [message-view "Sending your invoice..."])
   (go
-    (let [params   (:params @app-state)
-          response (<! (http/post "localhost:3000" #_"http://payme.rust.cafe"
-                                  {:json-params params}))]
-      (show-message [message-view (str "Params " (pr-str params)
-                                       "\nResult " (pr-str response))]))))
+    (let [params           (->> (:params @app-state)
+                                (map (fn [[k v]]
+                                       (let [k (-> k
+                                                   name
+                                                   (s/replace "-" "_")
+                                                   keyword)]
+                                         [k v])))
+                                (into {}))
+          {:keys [success]
+           :as   response} (<! (http/post "http://localhost:3000/invoice" #_"http://rust.cafe/invoice"
+                                          {:json-params params}))]
+      (<! (timeout 500))
+      (if success
+        (show-message [message-view "Done! Your invoice has been sent"])
+        (show-message [message-view (str "Params " (pr-str params)
+                                         "\nResult " (pr-str response))])))))
 
 (defn ready-view []
   (let []
@@ -188,6 +214,6 @@
     (<! (timeout 1500))
     (show-message [message-view "Let's build your invoice"])
     (<! (timeout 1500))
-    (show-message [message-view "Answer a few questions and I'll remember it for the next time you come back"])
+    (show-message [message-view "Answer a few questions and I'll remember your answers for the next time you come back"])
     (<! (timeout 1500))
     (show-message [email-view])))
