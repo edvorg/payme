@@ -1,3 +1,4 @@
+extern crate redis;
 extern crate iron;
 extern crate mount;
 extern crate staticfile;
@@ -13,7 +14,7 @@ extern crate persistent;
 use std::fs::File;
 use std::path::Path;
 use std::io::Read;
-
+use redis::{Commands, PipelineCommands};
 use iron::prelude::*;
 use iron::status;
 use router::Router;
@@ -30,6 +31,33 @@ lazy_static! {
         #[warn(unused_mut)]
         tera
     };
+}
+
+fn redis_con() -> redis::Connection {
+    let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+    client.get_connection().unwrap()
+}
+
+fn get_new_invoice_id() -> isize {
+    let con = redis_con();
+    let key = "the_key";
+    let (new_val,) : (isize,) = redis::transaction(&con, &[key], |pipe| {
+        let old_val : isize = con.get(key).unwrap();
+        pipe.set(key, old_val + 1).ignore()
+            .get(key).query(&con)
+    }).unwrap();
+    new_val
+}
+
+fn set_confirmed(i: isize) -> bool {
+    let con = redis_con();
+    let _ : () = con.set(format!("confirmed:{}", i), true).unwrap();
+    con.get("my_key").unwrap()
+}
+
+fn is_confirmed(i: isize) -> bool {
+    let con = redis_con();
+    con.get("my_key").unwrap()
 }
 
 fn render_post(post_id: u32) -> String {
@@ -95,7 +123,6 @@ fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
         Ok(None) => println!("No body"),
         Err(err) => println!("Error: {:?}", err)
     }
-
     println!("sending invoice");
     let mut response = Response::new();
     response.set_mut(status::Ok);
