@@ -13,7 +13,7 @@ extern crate persistent;
 
 pub mod payme {
     pub mod redis;
-    pub mod invoice;
+    pub mod json;
     pub mod handler;
     pub mod router;
     pub mod email;
@@ -25,6 +25,6 @@ use iron::{Iron, Chain};
 fn main() {
     println!("Serving on :3000");
     let mut chain = Chain::new(payme::router::make_mount());
-    chain.link_before(payme::invoice::middleware());
+    chain.link_before(payme::json::middleware());
     Iron::new(chain).http("localhost:3000").unwrap();
 }

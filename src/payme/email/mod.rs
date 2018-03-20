@@ -6,7 +6,7 @@ use tera::Tera;
 use tera::Context;
 use std::process::{Command, Stdio};
 
-use payme::invoice;
+use payme::json;
 
 lazy_static! {
     pub static ref TERA: Tera = {
@@ -71,7 +71,7 @@ fn render_email_test() {
                             "".to_string()));
 }
 
-pub fn send_invoice(invoice_id: isize, invoice: invoice::InvoiceInfo) {
+pub fn send_invoice(invoice_id: isize, invoice: json::InvoiceInfo) {
     let output = render_email("email".to_string(),
                               "invoice".to_string(),
                               invoice.company,
@@ -94,7 +94,7 @@ pub fn send_invoice(invoice_id: isize, invoice: invoice::InvoiceInfo) {
     write!(put_command.stdin.unwrap(), "{}", output).unwrap();
 }
 
-pub fn send_confirm(invoice_id: isize, invoice: invoice::InvoiceInfo, token: String) {
+pub fn send_confirm(invoice_id: isize, invoice: json::InvoiceInfo, token: String) {
     let output = render_email("email".to_string(),
                               "confirm".to_string(),
                               invoice.company,
@@ -117,7 +117,7 @@ pub fn send_confirm(invoice_id: isize, invoice: invoice::InvoiceInfo, token: Str
     write!(put_command.stdin.unwrap(), "{}", output).unwrap();
 }
 
-pub fn send_receipt(invoice_id: isize, invoice: invoice::InvoiceInfo) {
+pub fn send_receipt(invoice_id: isize, invoice: json::InvoiceInfo) {
     let output = render_email("email".to_string(),
                               "receipt".to_string(),
                               invoice.company,

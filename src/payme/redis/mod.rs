@@ -2,7 +2,7 @@ extern crate redis;
 extern crate serde_json;
 
 use self::redis::{Commands, PipelineCommands};
-use payme::invoice;
+use payme::json;
 
 static INVOICE_ID_KEY: &'static str = "invoice_id";
 
@@ -66,15 +66,15 @@ fn is_confirmed_test() {
     assert!(is_confirmed(id));
 }
 
-pub fn set_info(id: isize, invoice: invoice::InvoiceInfo) -> invoice::InvoiceInfo {
+pub fn set_info(id: isize, invoice: json::InvoiceInfo) -> json::InvoiceInfo {
     let con = redis_con();
     let _ : () = con.set(get_info_key(id), serde_json::to_string(&invoice).unwrap()).unwrap();
     invoice
 }
 
 #[allow(dead_code)]
-fn make_test_info() -> invoice::InvoiceInfo {
-    invoice::InvoiceInfo {
+fn make_test_info() -> json::InvoiceInfo {
+    json::InvoiceInfo {
         task: "".to_string(),
         hours: "".to_string(),
         rate: "".to_string(),
@@ -96,7 +96,7 @@ fn set_info_test() {
     assert_eq!(invoice, set_info(id, invoice.clone()));
 }
 
-pub fn get_info(id: isize) -> Option<invoice::InvoiceInfo> {
+pub fn get_info(id: isize) -> Option<json::InvoiceInfo> {
     let con = redis_con();
     let s: String = con.get(get_info_key(id)).unwrap_or("{}".to_string());
     match serde_json::from_str(&s) {

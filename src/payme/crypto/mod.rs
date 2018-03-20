@@ -4,14 +4,14 @@ extern crate hex_slice;
 
 use self::sha2::Sha256;
 use self::hmac::{Hmac, Mac};
-use payme::invoice;
+use payme::json;
 use std::u8;
 
 static SECRET: &'static [u8] = b"secret";
 
 #[allow(dead_code)]
-fn make_test_info() -> invoice::InvoiceInfo {
-    invoice::InvoiceInfo {
+fn make_test_info() -> json::InvoiceInfo {
+    json::InvoiceInfo {
         task: "".to_string(),
         hours: "".to_string(),
         rate: "".to_string(),
@@ -98,13 +98,13 @@ fn from_hex_test_255() {
     assert_eq!(255, from_hex("ff"));
 }
 
-fn make_hmac(op: String, id: isize, invoice: invoice::InvoiceInfo) -> Hmac<Sha256> {
+fn make_hmac(op: String, id: isize, invoice: json::InvoiceInfo) -> Hmac<Sha256> {
     let mut hmac = Hmac::<Sha256>::new(SECRET).unwrap();
     hmac.input(format!("{}{}{:?}", op, id, invoice).as_bytes());
     hmac
 }
 
-fn gen_token(op: String, id: isize, invoice: invoice::InvoiceInfo) -> String {
+fn gen_token(op: String, id: isize, invoice: json::InvoiceInfo) -> String {
     let hmac = make_hmac(op, id, invoice);
     let result = hmac.result();
     let code_bytes = result.code();
@@ -122,7 +122,7 @@ fn gen_token_test() {
                                                                                              make_test_info()));
 }
 
-fn is_token_valid(op: String, id: isize, invoice: invoice::InvoiceInfo, token: String) -> bool {
+fn is_token_valid(op: String, id: isize, invoice: json::InvoiceInfo, token: String) -> bool {
     let hmac = make_hmac(op, id, invoice);
     let cs: Vec<char> = token.chars().collect();
     let mut v = Vec::new();
@@ -151,26 +151,26 @@ fn is_token_valid_test() {
                            "1f4e576dc41d78e8d58236daf288c7322117791815fbedc9617a877e2e226025".to_string()));
 }
 
-pub fn gen_recipt_token(id: isize, invoice: invoice::InvoiceInfo) -> String {
+pub fn gen_recipt_token(id: isize, invoice: json::InvoiceInfo) -> String {
     gen_token("invoice".to_string(), id, invoice)
 }
 
-pub fn is_invoice_token_valid(id: isize, invoice: invoice::InvoiceInfo, token: String) -> bool {
+pub fn is_invoice_token_valid(id: isize, invoice: json::InvoiceInfo, token: String) -> bool {
     is_token_valid("invoice".to_string(), id, invoice, token)
 }
 
-pub fn gen_receipt_token(id: isize, invoice: invoice::InvoiceInfo) -> String {
+pub fn gen_receipt_token(id: isize, invoice: json::InvoiceInfo) -> String {
     gen_token("receipt".to_string(), id, invoice)
 }
 
-pub fn is_receipt_token_valid(id: isize, invoice: invoice::InvoiceInfo, token: String) -> bool {
+pub fn is_receipt_token_valid(id: isize, invoice: json::InvoiceInfo, token: String) -> bool {
     is_token_valid("receipt".to_string(), id, invoice, token)
 }
 
-pub fn gen_unsubscribe_token(id: isize, invoice: invoice::InvoiceInfo) -> String {
+pub fn gen_unsubscribe_token(id: isize, invoice: json::InvoiceInfo) -> String {
     gen_token("unsubscribe".to_string(), id, invoice)
 }
 
-pub fn is_unsubscribe_token_valid(id: isize, invoice: invoice::InvoiceInfo, token: String) -> bool {
+pub fn is_unsubscribe_token_valid(id: isize, invoice: json::InvoiceInfo, token: String) -> bool {
     is_token_valid("unsubscribe".to_string(), id, invoice, token)
 }

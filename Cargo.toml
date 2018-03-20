@@ -23,6 +23,7 @@ hmac = "0.5"
 sha2 = "0.7"
 hex-slice = "0.1.4"
 params = "0.8.0"
+reqwest = "0.8.5"
 
 [dependencies.bodyparser]
 git = "https://github.com/iron/body-parser.git"
