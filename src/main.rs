@@ -26,5 +26,5 @@ fn main() {
     println!("Serving on :3000");
     let mut chain = Chain::new(payme::router::make_mount());
     chain.link_before(payme::json::middleware());
-    Iron::new(chain).http("localhost:3000").unwrap();
+    Iron::new(chain).http("0.0.0.0:3000").unwrap();
 }

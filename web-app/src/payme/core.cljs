@@ -202,7 +202,7 @@
                                          [k v])))
                                 (into {}))
           {:keys [success]
-           :as   response} (<! (http/post "http://localhost:3000/invoice" #_"http://rust.cafe/invoice"
+           :as   response} (<! (http/post "/invoice"
                                           {:json-params params
                                            :query-params {:g-recaptcha-response g-recaptcha-response}}))]
       (<! (timeout 500))
