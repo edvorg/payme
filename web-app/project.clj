@@ -31,12 +31,16 @@
                            :output-to "resources/public/js/compiled/payme.js"
                            :output-dir "resources/public/js/compiled/out"
                            :source-map-timestamp true
-                           :preloads [devtools.preload]}}
+                           :preloads [devtools.preload]
+                           :optimizations :none
+                           :foreign-libs [{:file "resources/public/node_modules/react-recaptcha/dist/react-recaptcha.js"
+                                           :file-min "resources/public/node_modules/react-recaptcha/dist/react-recaptcha.js"
+                                           :provides ["cljsjs.react-recaptcha"]}]}}
                {:id "min"
                 :source-paths ["src"]
                 :compiler {:output-to "resources/public/js/compiled/payme.js"
                            :main payme.core
-                           :optimizations :advanced
+                           :optimizations :none #_:advanced
                            :pretty-print false}}]}
 
   :figwheel {:css-dirs ["resources/public/css"]}

@@ -2,7 +2,8 @@
   (:require [reagent.core :as reagent :refer [atom cursor]]
             [cljs.core.async :refer [go <! timeout]]
             [cljs-http.client :as http]
-            [clojure.string :as s])
+            [clojure.string :as s]
+            [cljsjs.react-recaptcha])
   (:require-macros [cljs.core.async :refer [go]]))
 
 (enable-console-print!)
@@ -168,7 +169,7 @@
                    :on-key-press (on-enter #(show-message [ready-view])
                                            #(swap! terms str "\n"))}]])))
 
-(defn send-invoice []
+(defn send-invoice [g-recaptcha-response]
   (show-message [message-view "Sending your invoice..."])
   (go
     (let [params           (->> (:params @app-state)
@@ -181,7 +182,8 @@
                                 (into {}))
           {:keys [success]
            :as   response} (<! (http/post "http://localhost:3000/invoice" #_"http://rust.cafe/invoice"
-                                          {:json-params params}))]
+                                          {:json-params params
+                                           :query-params {:g-recaptcha-response g-recaptcha-response}}))]
       (<! (timeout 500))
       (if success
         (show-message [message-view "Done! Your invoice has been sent"])
@@ -189,15 +191,15 @@
                                          "\nResult " (pr-str response))])))))
 
 (defn ready-view []
-  (let []
+  (let [verified (atom nil)]
     (fn []
       [:div.card.ready
-       [:label "All set. Ready to send invoice? Hit ENTER :)"]
-       [:input {:type         :string
-                :value        ""
-                :on-change    (fn [_])
-                :auto-focus   true
-                :on-key-press (on-enter send-invoice)}]])))
+       [:label "All set. Ready to send invoice? Just pass captcha"]
+       (when-not @verified
+         [:> js/ReactRecaptcha {:sitekey "6Lcmw00UAAAAAOOKJDoeVNEsVuJFJ6ka3dSbGaIV"
+                                :verifyCallback (fn [g-recaptcha-response]
+                                                  (reset! verified true)
+                                                  (send-invoice (js->clj g-recaptcha-response)))}])])))
 
 (defn hello-world []
   [:div
