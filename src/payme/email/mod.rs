@@ -84,7 +84,7 @@ pub fn send_invoice(invoice_id: isize, invoice: json::InvoiceInfo) {
                               format!("{}", invoice_id),
                               "".to_string(),
                               serde_json::to_string(&invoice).unwrap());
-    // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
+    println!("sending email to {} {}", &invoice.client_email, &output);
     let put_command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")
@@ -108,7 +108,7 @@ pub fn send_confirm(invoice_id: isize, invoice: json::InvoiceInfo, token: String
                               format!("{}", invoice_id),
                               token,
                               "".to_string());
-    // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
+    println!("sending email to {} {}", &invoice.email, &output);
     let put_command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")
@@ -132,7 +132,7 @@ pub fn send_receipt(invoice_id: isize, invoice: json::InvoiceInfo) {
                               format!("{}", invoice_id),
                               "".to_string(),
                               serde_json::to_string(&invoice).unwrap());
-    // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
+    println!("sending email to {} {}", &invoice.client_email, &output);
     let put_command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")

@@ -72,6 +72,7 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
         response.set_mut("Invoiced");
         Ok(response)
     } else {
+        println!("unable to validate user");
         let mut response = Response::new();
         response.set_mut(status::Ok);
         response.set_mut("Unable to verify user");
