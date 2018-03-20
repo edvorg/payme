@@ -1,4 +1,5 @@
 extern crate markdown;
+extern crate serde_json;
 
 use std::fs::File;
 use std::io::{Write, Read, Error};
@@ -39,19 +40,22 @@ fn render_email(template_id: String,
                 user: String,
                 receiver: String,
                 invoice_id: String,
-                token: String) -> String {
+                token: String,
+                content: String) -> String {
     render_markdown(email_id)
         .map(|email| {
             email.replace("{{user}}", &user)
                 .replace("{{receiver}}", &receiver)
                 .replace("{{invoice_id}}", &invoice_id)
                 .replace("{{token}}", &token)
+                .replace("{{content}}", &content)
         }).map(|email| {
             let mut context = Context::new();
             context.add("email", &email);
             context.add("user", &user);
             context.add("invoice_id", &invoice_id);
             context.add("token", &token);
+            context.add("content", &content);
             TERA.render(&format!("{}.html", template_id), &context)
                 .or_else(|e| {
                     println!("error {}", e);
@@ -68,16 +72,18 @@ fn render_email_test() {
                             "test user".to_string(),
                             "test receiver".to_string(),
                             "".to_string(),
+                            "".to_string(),
                             "".to_string()));
 }
 
 pub fn send_invoice(invoice_id: isize, invoice: json::InvoiceInfo) {
     let output = render_email("email".to_string(),
                               "invoice".to_string(),
-                              invoice.company,
-                              invoice.client_company,
+                              invoice.company.clone(),
+                              invoice.client_company.clone(),
                               format!("{}", invoice_id),
-                              "".to_string());
+                              "".to_string(),
+                              serde_json::to_string(&invoice).unwrap());
     // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
     let put_command = Command::new("mutt")
         .arg("-e")
@@ -100,7 +106,8 @@ pub fn send_confirm(invoice_id: isize, invoice: json::InvoiceInfo, token: String
                               invoice.company,
                               invoice.client_company,
                               format!("{}", invoice_id),
-                              token);
+                              token,
+                              "".to_string());
     // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
     let put_command = Command::new("mutt")
         .arg("-e")
@@ -120,10 +127,11 @@ pub fn send_confirm(invoice_id: isize, invoice: json::InvoiceInfo, token: String
 pub fn send_receipt(invoice_id: isize, invoice: json::InvoiceInfo) {
     let output = render_email("email".to_string(),
                               "receipt".to_string(),
-                              invoice.company,
-                              invoice.client_company,
+                              invoice.company.clone(),
+                              invoice.client_company.clone(),
                               format!("{}", invoice_id),
-                              "".to_string());
+                              "".to_string(),
+                              serde_json::to_string(&invoice).unwrap());
     // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
     let put_command = Command::new("mutt")
         .arg("-e")

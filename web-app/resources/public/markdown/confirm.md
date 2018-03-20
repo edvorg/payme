@@ -8,4 +8,4 @@ Once you have received his paiment, please click the link below and we will send
 
 Regards, Payme.
 
-[Unsubscribe](http://localhost:3000/unsubsribe?token={{unsubscribe}})
+[Unsubscribe](http://localhost:3000/unsubsribe/{{invoice_id}}?token={{unsubscribe}})
