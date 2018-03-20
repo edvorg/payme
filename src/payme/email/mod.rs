@@ -38,17 +38,20 @@ fn render_email(template_id: String,
                 email_id: String,
                 user: String,
                 receiver: String,
-                invoice_id: String) -> String {
+                invoice_id: String,
+                token: String) -> String {
     render_markdown(email_id)
         .map(|email| {
             email.replace("{{user}}", &user)
                 .replace("{{receiver}}", &receiver)
                 .replace("{{invoice_id}}", &invoice_id)
+                .replace("{{token}}", &token)
         }).map(|email| {
             let mut context = Context::new();
             context.add("email", &email);
             context.add("user", &user);
             context.add("invoice_id", &invoice_id);
+            context.add("token", &token);
             TERA.render(&format!("{}.html", template_id), &context)
                 .or_else(|e| {
                     println!("error {}", e);
@@ -64,6 +67,7 @@ fn render_email_test() {
                             "test".to_string(),
                             "test user".to_string(),
                             "test receiver".to_string(),
+                            "".to_string(),
                             "".to_string()));
 }
 
@@ -72,7 +76,8 @@ pub fn send_invoice(invoice_id: isize, invoice: invoice::InvoiceInfo) {
                               "invoice".to_string(),
                               invoice.company,
                               invoice.client_company,
-                              format!("{}", invoice_id));
+                              format!("{}", invoice_id),
+                              "".to_string());
     // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
     let put_command = Command::new("mutt")
         .arg("-e")
@@ -89,12 +94,13 @@ pub fn send_invoice(invoice_id: isize, invoice: invoice::InvoiceInfo) {
     write!(put_command.stdin.unwrap(), "{}", output).unwrap();
 }
 
-pub fn send_confirm(invoice_id: isize, invoice: invoice::InvoiceInfo) {
+pub fn send_confirm(invoice_id: isize, invoice: invoice::InvoiceInfo, token: String) {
     let output = render_email("email".to_string(),
                               "confirm".to_string(),
                               invoice.company,
                               invoice.client_company,
-                              format!("{}", invoice_id));
+                              format!("{}", invoice_id),
+                              token);
     // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
     let put_command = Command::new("mutt")
         .arg("-e")
@@ -116,7 +122,8 @@ pub fn send_receipt(invoice_id: isize, invoice: invoice::InvoiceInfo) {
                               "receipt".to_string(),
                               invoice.company,
                               invoice.client_company,
-                              format!("{}", invoice_id));
+                              format!("{}", invoice_id),
+                              "".to_string());
     // mutt -e "set content_type=text/html" -s "Test mail" -a ~/Downloads/result.txt -- test@rust.cafe
     let put_command = Command::new("mutt")
         .arg("-e")

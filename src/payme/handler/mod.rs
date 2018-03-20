@@ -1,4 +1,5 @@
 extern crate iron;
+extern crate params;
 
 use iron::prelude::*;
 use iron::status;
@@ -9,6 +10,8 @@ use router::Router;
 use payme::invoice;
 use payme::redis;
 use payme::email;
+use payme::crypto;
+use self::params::{Params, Value};
 
 pub fn handle_index_request(_request: &mut Request) -> IronResult<Response> {
     println!("getting index page");
@@ -27,7 +30,8 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
             let id = redis::get_new_invoice_id();
             redis::set_info(id, struct_body.clone());
             email::send_invoice(id, struct_body.clone());
-            email::send_confirm(id, struct_body.clone());
+            let token = crypto::gen_receipt_token(id, struct_body.clone());
+            email::send_confirm(id, struct_body.clone(), token);
         },
         Ok(None) => println!("No body"),
         Err(err) => println!("Error: {:?}", err)
@@ -43,23 +47,59 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
         .find("invoice_id")
         .and_then(|invoice_id| {
             invoice_id.parse::<isize>().ok()
-        }).unwrap();
-    if !redis::is_confirmed(invoice_id) {
-        println!("sending receipt");
-        let info = redis::get_info(invoice_id);
-        match info {
-            Some(info) => {
-                redis::set_confirmed(invoice_id);
-                email::send_receipt(invoice_id, info);
-                redis::del_info(invoice_id);
-            },
-            None => println!("Invoice not found "),
+        });
+    match invoice_id {
+        Some(invoice_id) => {
+            let map = request.get_ref::<Params>().unwrap();
+            match map.find(&["token"]) {
+                Some(&Value::String(ref token)) => {
+                    if !redis::is_confirmed(invoice_id) {
+                        println!("sending receipt");
+                        let info = redis::get_info(invoice_id);
+                        match info {
+                            Some(info) => {
+                                if crypto::is_receipt_token_valid(invoice_id, info.clone(), token.to_string()) {
+                                    redis::set_confirmed(invoice_id);
+                                    email::send_receipt(invoice_id, info);
+                                    redis::del_info(invoice_id);
+                                    let mut response = Response::new();
+                                    response.set_mut(status::Ok);
+                                    response.set_mut("Confirmed");
+                                    Ok(response)
+                                } else {
+                                    let mut response = Response::new();
+                                    response.set_mut(status::Ok);
+                                    response.set_mut("Invalid token");
+                                    Ok(response)
+                                }
+                            },
+                            None => {
+                                let mut response = Response::new();
+                                response.set_mut(status::Ok);
+                                response.set_mut("Invoice not found");
+                                Ok(response)
+                            },
+                        }
+                    } else {
+                        let mut response = Response::new();
+                        response.set_mut(status::Ok);
+                        response.set_mut("Receipt already confirmed");
+                        Ok(response)
+                    }
+                },
+                _ => {
+                    let mut response = Response::new();
+                    response.set_mut(status::Ok);
+                    response.set_mut("Unable to parse token");
+                    Ok(response)
+                },
+            }
+        },
+        _ => {
+            let mut response = Response::new();
+            response.set_mut(status::Ok);
+            response.set_mut("Unable to parse invoice_id");
+            Ok(response)
         }
-    } else {
-        println!("have already sent receipt");
     }
-    let mut response = Response::new();
-    response.set_mut(status::Ok);
-    response.set_mut("Confirmed");
-    Ok(response)
 }
