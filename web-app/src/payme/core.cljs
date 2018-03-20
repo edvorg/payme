@@ -201,15 +201,15 @@
                                                    keyword)]
                                          [k v])))
                                 (into {}))
-          {:keys [success]
+          {:keys [success
+                  body]
            :as   response} (<! (http/post "/invoice"
-                                          {:json-params params
+                                          {:json-params  params
                                            :query-params {:g-recaptcha-response g-recaptcha-response}}))]
       (<! (timeout 500))
       (if success
         (show-message [message-view "Done! Your invoice has been sent"])
-        (show-message [message-view (str "Params " (pr-str params)
-                                         "\nResult " (pr-str response))])))))
+        (show-message [message-view (str "\nResult: " body)])))))
 
 (defn ready-view []
   (let [verified (atom nil)]
