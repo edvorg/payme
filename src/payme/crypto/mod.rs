@@ -5,9 +5,8 @@ extern crate hex_slice;
 use self::sha2::Sha256;
 use self::hmac::{Hmac, Mac};
 use payme::json;
+use payme::config;
 use std::u8;
-
-static SECRET: &'static [u8] = b"secret";
 
 #[allow(dead_code)]
 fn make_test_info() -> json::InvoiceInfo {
@@ -99,7 +98,7 @@ fn from_hex_test_255() {
 }
 
 fn make_hmac(op: String, id: isize, invoice: json::InvoiceInfo) -> Hmac<Sha256> {
-    let mut hmac = Hmac::<Sha256>::new(SECRET).unwrap();
+    let mut hmac = Hmac::<Sha256>::new(config::get_crypto_secret().as_bytes()).unwrap();
     hmac.input(format!("{}{}{:?}", op, id, invoice).as_bytes());
     hmac
 }

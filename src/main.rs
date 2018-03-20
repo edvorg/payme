@@ -18,6 +18,7 @@ pub mod payme {
     pub mod router;
     pub mod email;
     pub mod crypto;
+    pub mod config;
 }
 
 use iron::{Iron, Chain};

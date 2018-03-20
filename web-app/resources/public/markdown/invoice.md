@@ -6,4 +6,4 @@ You received this email because **{{user}}** generated an invoice for you.
 
 Regards, Payme.
 
-[Unsubscribe](http://localhost:3000/unsubsribe/{{invoice_id}}?token={{unsubscribe}})
+[Unsubscribe](http://{{host}}/unsubsribe/{{invoice_id}}?token={{unsubscribe}})

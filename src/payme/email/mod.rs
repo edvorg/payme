@@ -6,7 +6,7 @@ use std::io::{Write, Read, Error};
 use tera::Tera;
 use tera::Context;
 use std::process::{Command, Stdio};
-
+use payme::config;
 use payme::json;
 
 lazy_static! {
@@ -49,6 +49,7 @@ fn render_email(template_id: String,
                 .replace("{{invoice_id}}", &invoice_id)
                 .replace("{{token}}", &token)
                 .replace("{{content}}", &content)
+                .replace("{{host}}", &config::get_host())
         }).map(|email| {
             let mut context = Context::new();
             context.add("email", &email);
@@ -56,6 +57,7 @@ fn render_email(template_id: String,
             context.add("invoice_id", &invoice_id);
             context.add("token", &token);
             context.add("content", &content);
+            context.add("host", &config::get_host());
             TERA.render(&format!("{}.html", template_id), &context)
                 .or_else(|e| {
                     println!("error {}", e);

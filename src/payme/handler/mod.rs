@@ -12,9 +12,8 @@ use payme::json;
 use payme::redis;
 use payme::email;
 use payme::crypto;
+use payme::config;
 use self::params::{Params, Value};
-
-static SECRET: &'static str = "secret";
 
 pub fn handle_index_request(_request: &mut Request) -> IronResult<Response> {
     println!("getting index page");
@@ -51,7 +50,7 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
         client_company_address: get_string_param(map, "client_company_address"),
         terms: get_string_param(map, "terms"),
     };
-    let params = [("secret", SECRET),
+    let params = [("secret", &config::get_recaptcha_secret()),
                   ("response", &g_recaptcha_response)];
     let client = Client::new();
     let res = client.post("https://www.google.com/recaptcha/api/siteverify")
