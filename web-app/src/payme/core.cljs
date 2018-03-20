@@ -3,13 +3,14 @@
             [cljs.core.async :refer [go <! timeout]]
             [cljs-http.client :as http]
             [clojure.string :as s]
-            [cljsjs.react-recaptcha])
+            [cljsjs.react-recaptcha]
+            [reagent.cookies :as cookies])
   (:require-macros [cljs.core.async :refer [go]]))
 
 (enable-console-print!)
 
 (def app-state (atom {:messages []
-                      :params {}}))
+                      :params (cookies/get "data" {})}))
 
 (defn show-message [component]
   (swap! app-state update :messages conj component))
@@ -57,7 +58,9 @@
                 :on-change (fn [e]
                              (reset! email (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [client-email-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [client-email-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn client-email-view []
   (let [client-email (cursor app-state [:params :client-email])]
@@ -69,7 +72,9 @@
                 :on-change (fn [e]
                              (reset! client-email (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [task-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [task-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn task-view []
   (let [task (cursor app-state [:params :task])]
@@ -81,7 +86,9 @@
                 :on-change (fn [e]
                              (reset! task (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [hours-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [hours-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn hours-view []
   (let [hours (cursor app-state [:params :hours])]
@@ -93,7 +100,9 @@
                 :on-change (fn [e]
                              (reset! hours (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [rate-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [rate-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn rate-view []
   (let [rate (cursor app-state [:params :rate])]
@@ -105,7 +114,9 @@
                 :on-change (fn [e]
                              (reset! rate (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [company-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [company-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn company-view []
   (let [company (cursor app-state [:params :company])]
@@ -117,7 +128,9 @@
                 :on-change (fn [e]
                              (reset! company (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [company-address-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [company-address-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn company-address-view []
   (let [company-address (cursor app-state [:params :company-address])]
@@ -129,7 +142,9 @@
                 :on-change (fn [e]
                              (reset! company-address (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [client-company-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [client-company-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn client-company-view []
   (let [client-company (cursor app-state [:params :client-company])]
@@ -141,7 +156,9 @@
                 :on-change (fn [e]
                              (reset! client-company (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [client-company-address-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [client-company-address-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn client-company-address-view []
   (let [client-company-address (cursor app-state [:params :client-company-address])]
@@ -153,7 +170,9 @@
                 :on-change (fn [e]
                              (reset! client-company-address (.. e -target -value)))
                 :auto-focus true
-                :on-key-press (on-enter #(show-message [terms-view]))}]])))
+                :on-key-press (on-enter #(do
+                                           (show-message [terms-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn terms-view []
   (let [terms (cursor app-state [:params :terms])]
@@ -166,7 +185,9 @@
                    :on-change (fn [e]
                                 (reset! terms (.. e -target -value)))
                    :auto-focus true
-                   :on-key-press (on-enter #(show-message [ready-view])
+                   :on-key-press (on-enter #(do
+                                              (show-message [ready-view])
+                                              (cookies/set! "data" (:params @app-state) :raw? false))
                                            #(swap! terms str "\n"))}]])))
 
 (defn send-invoice [g-recaptcha-response]

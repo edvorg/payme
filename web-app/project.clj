@@ -13,7 +13,8 @@
                  [secretary "1.2.3"]
                  [venantius/accountant "0.2.4" :exclusions [org.clojure/tools.reader]]
                  [cljs-http "0.1.44"]
-                 [rocks.clj/configuron "0.1.1-SNAPSHOT"]]
+                 [rocks.clj/configuron "0.1.1-SNAPSHOT"]
+                 [reagent-utils "0.3.1"]]
 
   :plugins [[lein-figwheel "0.5.15"]
             [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
