@@ -85,6 +85,7 @@ fn make_test_info() -> json::InvoiceInfo {
         client_company: "XLucidity".to_string(),
         client_company_address: "".to_string(),
         terms: "".to_string(),
+        number: "".to_string(),
     }
 }
 #[warn(dead_code)]

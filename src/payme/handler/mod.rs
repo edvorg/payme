@@ -32,7 +32,7 @@ fn get_string_param(map: &params::Map, param: &str) -> String {
         _ => {
             None
         },
-    }.unwrap().clone()
+    }.unwrap_or(&"".to_string()).clone()
 }
 
 pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
@@ -49,6 +49,7 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
         client_company: get_string_param(map, "client_company"),
         client_company_address: get_string_param(map, "client_company_address"),
         terms: get_string_param(map, "terms"),
+        number: get_string_param(map, "number"),
     };
     let params = [("secret", &config::get_recaptcha_secret()),
                   ("response", &g_recaptcha_response)];

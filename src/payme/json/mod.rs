@@ -18,6 +18,7 @@ pub struct InvoiceInfo {
     pub client_company: String,
     pub client_company_address: String,
     pub terms: String,
+    pub number: String,
 }
 
 pub fn parse_invoice_info(request: &mut Request) -> Result<Option<InvoiceInfo>, bodyparser::BodyError> {

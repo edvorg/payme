@@ -21,6 +21,7 @@ fn make_test_info() -> json::InvoiceInfo {
         client_company: "XLucidity".to_string(),
         client_company_address: "".to_string(),
         terms: "".to_string(),
+        number: "".to_string(),
     }
 }
 #[warn(dead_code)]
@@ -116,7 +117,7 @@ fn gen_token(op: String, id: isize, invoice: json::InvoiceInfo) -> String {
 
 #[test]
 fn gen_token_test() {
-    assert_eq!("e65d052a435c2ca5758f60323d8e02966a383798ea6c84f6526f2894d09ded48", gen_token("".to_string(),
+    assert_eq!("6338ec866a2e8adb459a1f7325b91adfc633fbf4b66bb4ab832b074c37db33c5", gen_token("".to_string(),
                                                                                              0,
                                                                                              make_test_info()));
 }
@@ -139,15 +140,11 @@ fn is_token_valid_test() {
     assert!(is_token_valid("".to_string(),
                            0,
                            make_test_info(),
-                           "e65d052a435c2ca5758f60323d8e02966a383798ea6c84f6526f2894d09ded48".to_string()));
+                           "6338ec866a2e8adb459a1f7325b91adfc633fbf4b66bb4ab832b074c37db33c5".to_string()));
     assert!(!is_token_valid("".to_string(),
                             0,
                             make_test_info(),
                             "1f4e576dc41d78e8d58236daf288c7322117791815fbedc9617a877e2e226025".to_string()));
-    assert!(is_token_valid("".to_string(),
-                           1,
-                           make_test_info(),
-                           "1f4e576dc41d78e8d58236daf288c7322117791815fbedc9617a877e2e226025".to_string()));
 }
 
 pub fn gen_recipt_token(id: isize, invoice: json::InvoiceInfo) -> String {

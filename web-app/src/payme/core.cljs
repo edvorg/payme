@@ -26,6 +26,7 @@
 (declare client-company-view)
 (declare client-company-address-view)
 (declare terms-view)
+(declare number-view)
 (declare ready-view)
 
 (defn on-enter [f & [g]]
@@ -186,9 +187,23 @@
                                 (reset! terms (.. e -target -value)))
                    :auto-focus true
                    :on-key-press (on-enter #(do
-                                              (show-message [ready-view])
+                                              (show-message [number-view])
                                               (cookies/set! "data" (:params @app-state) :raw? false))
                                            #(swap! terms str "\n"))}]])))
+
+(defn number-view []
+  (let [number (cursor app-state [:params :number])]
+    (fn []
+      [:div.card.number
+       [:label "What's the number of your invoice?"]
+       [:input {:type :string
+                :value @number
+                :on-change (fn [e]
+                             (reset! number (.. e -target -value)))
+                :auto-focus true
+                :on-key-press (on-enter #(do
+                                           (show-message [ready-view])
+                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
 
 (defn send-invoice [g-recaptcha-response]
   (show-message [message-view "Sending your invoice..."])
