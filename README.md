@@ -6,13 +6,13 @@ Invoice your client in one click.
 
 Tired of your invoicing flow? Me too.
 This service lets you invoice your client in one click.
-Don\'t beleive me? [Count it!](http://payme.rust.cafe)
+Don\'t beleive me? [Count it!](https://payme.rust.cafe)
 
 ## Usage
 
 The usage is very simple. My flow is as follows:
 
-1. At the end of the month open [payme](http://payme.rust.cafe) and send an invoice to your client
+1. At the end of the month open [payme](https://payme.rust.cafe) and send an invoice to your client
 
 ![Invoicing](img/01.png)
 

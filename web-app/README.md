@@ -6,7 +6,7 @@ Invoice your client in one click.
 
 Tired of your invoicing flow? Me too.
 This service lets you invoice your client in one click.
-Don\'t beleive me? [Count it!](http://payme.rust.cafe)
+Don\'t beleive me? [Count it!](https://payme.rust.cafe)
 
 ## Setup
 
