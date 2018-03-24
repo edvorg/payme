@@ -1,6 +1,9 @@
 extern crate markdown;
 extern crate serde_json;
+extern crate chrono;
 
+use self::chrono::Local;
+use std::path::Path;
 use std::fs::File;
 use std::io::{Write, Read, Error};
 use tera::Tera;
@@ -8,6 +11,9 @@ use tera::Context;
 use std::process::{Command, Stdio};
 use payme::config;
 use payme::json;
+use payme::pdf;
+use payme::pdf::PdfType;
+use payme::pdf::get_pdf_title;
 
 lazy_static! {
     pub static ref TERA: Tera = {
@@ -35,20 +41,44 @@ fn render_markdown_test() {
 
 }
 
+pub fn render_invoice(pdf_type: PdfType, info: &json::InvoiceInfo) -> String {
+    let mut style = "".to_string();
+    let title = get_pdf_title(pdf_type);
+    File::open(Path::new("web-app/resources/public/css/invoice.css")).unwrap().read_to_string(&mut style).unwrap();
+    let mut context = Context::new();
+    let date = Local::now();
+    context.add("date", &format!("{}", date.format("%b %d,%Y")));
+    context.add("style", &style);
+    context.add("title", &title);
+    context.add("number", &info.number);
+    context.add("company", &info.company);
+    context.add("company_address", &info.company_address);
+    context.add("client_company", &info.client_company);
+    context.add("client_company_address", &info.client_company_address);
+    context.add("task", &info.task);
+    context.add("hours", &info.hours);
+    context.add("rate", &format!("${}.00", info.rate));
+    context.add("amount", &format!("${}.00", info.hours * info.rate));
+    context.add("terms", &format!("<p>{}</p>", info.terms.clone().replace("\n\n", "</p><p>")));
+    TERA.render("invoice.html", &context)
+        .or_else(|e| {
+            println!("error {}", e);
+            Err(e)
+        }).unwrap_or("Can not render".to_string())
+}
+
 fn render_email(template_id: String,
                 email_id: String,
                 user: String,
                 receiver: String,
                 invoice_id: String,
-                token: String,
-                content: String) -> String {
+                token: String) -> String {
     render_markdown(email_id)
         .map(|email| {
             email.replace("{{user}}", &user)
                 .replace("{{receiver}}", &receiver)
                 .replace("{{invoice_id}}", &invoice_id)
                 .replace("{{token}}", &token)
-                .replace("{{content}}", &content)
                 .replace("{{host}}", &config::get_host())
         }).map(|email| {
             let mut context = Context::new();
@@ -56,7 +86,6 @@ fn render_email(template_id: String,
             context.add("user", &user);
             context.add("invoice_id", &invoice_id);
             context.add("token", &token);
-            context.add("content", &content);
             context.add("host", &config::get_host());
             TERA.render(&format!("{}.html", template_id), &context)
                 .or_else(|e| {
@@ -74,7 +103,6 @@ fn render_email_test() {
                             "test user".to_string(),
                             "test receiver".to_string(),
                             "".to_string(),
-                            "".to_string(),
                             "".to_string()));
 }
 
@@ -84,22 +112,24 @@ pub fn send_invoice(invoice_id: isize, invoice: json::InvoiceInfo) {
                               invoice.company.clone(),
                               invoice.client_company.clone(),
                               format!("{}", invoice_id),
-                              "".to_string(),
-                              serde_json::to_string(&invoice).unwrap());
+                              "".to_string());
     println!("sending email to {} {}", &invoice.client_email, &output);
-    let put_command = Command::new("mutt")
+    let mut command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")
         .arg("-c")
         .arg(&invoice.email)
         .arg("-s")
         .arg(format!("Invoice #{}", invoice.number))
+        .arg("-a")
+        .arg(pdf::get_pdf_path(PdfType::Invoice, invoice_id, invoice.number))
         .arg("--")
         .arg(invoice.client_email)
         .stdin(Stdio::piped())
         .spawn()
         .unwrap();
-    write!(put_command.stdin.unwrap(), "{}", output).unwrap();
+    write!(command.stdin.as_mut().unwrap(), "{}", output).unwrap();
+    command.wait().unwrap();
 }
 
 pub fn send_confirm(invoice_id: isize, invoice: json::InvoiceInfo, token: String) {
@@ -108,10 +138,9 @@ pub fn send_confirm(invoice_id: isize, invoice: json::InvoiceInfo, token: String
                               invoice.company,
                               invoice.client_company,
                               format!("{}", invoice_id),
-                              token,
-                              "".to_string());
+                              token);
     println!("sending email to {} {}", &invoice.email, &output);
-    let put_command = Command::new("mutt")
+    let mut command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")
         .arg("-c")
@@ -123,7 +152,8 @@ pub fn send_confirm(invoice_id: isize, invoice: json::InvoiceInfo, token: String
         .stdin(Stdio::piped())
         .spawn()
         .unwrap();
-    write!(put_command.stdin.unwrap(), "{}", output).unwrap();
+    write!(command.stdin.as_mut().unwrap(), "{}", output).unwrap();
+    command.wait().unwrap();
 }
 
 pub fn send_receipt(invoice_id: isize, invoice: json::InvoiceInfo) {
@@ -132,20 +162,22 @@ pub fn send_receipt(invoice_id: isize, invoice: json::InvoiceInfo) {
                               invoice.company.clone(),
                               invoice.client_company.clone(),
                               format!("{}", invoice_id),
-                              "".to_string(),
-                              serde_json::to_string(&invoice).unwrap());
+                              "".to_string());
     println!("sending email to {} {}", &invoice.client_email, &output);
-    let put_command = Command::new("mutt")
+    let mut command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")
         .arg("-c")
         .arg(&invoice.email)
         .arg("-s")
         .arg(format!("Receipt #{}", invoice.number))
+        .arg("-a")
+        .arg(pdf::get_pdf_path(PdfType::Receipt, invoice_id, invoice.number))
         .arg("--")
         .arg(invoice.client_email)
         .stdin(Stdio::piped())
         .spawn()
         .unwrap();
-    write!(put_command.stdin.unwrap(), "{}", output).unwrap();
+    write!(command.stdin.as_mut().unwrap(), "{}", output).unwrap();
+    command.wait().unwrap();
 }

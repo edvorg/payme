@@ -19,6 +19,7 @@ pub mod payme {
     pub mod email;
     pub mod crypto;
     pub mod config;
+    pub mod pdf;
 }
 
 use iron::{Iron, Chain};

@@ -12,8 +12,8 @@ use std::u8;
 fn make_test_info() -> json::InvoiceInfo {
     json::InvoiceInfo {
         task: "".to_string(),
-        hours: "".to_string(),
-        rate: "".to_string(),
+        hours: 0,
+        rate: 0,
         email: "payme@rust.cafe".to_string(),
         company: "Edward Knyshov".to_string(),
         company_address: "".to_string(),
@@ -21,7 +21,7 @@ fn make_test_info() -> json::InvoiceInfo {
         client_company: "XLucidity".to_string(),
         client_company_address: "".to_string(),
         terms: "".to_string(),
-        number: "".to_string(),
+        number: 0,
     }
 }
 #[warn(dead_code)]
@@ -117,7 +117,7 @@ fn gen_token(op: String, id: isize, invoice: json::InvoiceInfo) -> String {
 
 #[test]
 fn gen_token_test() {
-    assert_eq!("6338ec866a2e8adb459a1f7325b91adfc633fbf4b66bb4ab832b074c37db33c5", gen_token("".to_string(),
+    assert_eq!("d7b9eb850129f83f14abaf617da614c4bd167dada9b9b45467bda38af079fa00", gen_token("".to_string(),
                                                                                              0,
                                                                                              make_test_info()));
 }
@@ -140,7 +140,7 @@ fn is_token_valid_test() {
     assert!(is_token_valid("".to_string(),
                            0,
                            make_test_info(),
-                           "6338ec866a2e8adb459a1f7325b91adfc633fbf4b66bb4ab832b074c37db33c5".to_string()));
+                           "d7b9eb850129f83f14abaf617da614c4bd167dada9b9b45467bda38af079fa00".to_string()));
     assert!(!is_token_valid("".to_string(),
                             0,
                             make_test_info(),

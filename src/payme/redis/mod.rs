@@ -76,8 +76,8 @@ pub fn set_info(id: isize, invoice: json::InvoiceInfo) -> json::InvoiceInfo {
 fn make_test_info() -> json::InvoiceInfo {
     json::InvoiceInfo {
         task: "".to_string(),
-        hours: "".to_string(),
-        rate: "".to_string(),
+        hours: 0,
+        rate: 0,
         email: "payme@rust.cafe".to_string(),
         company: "Edward Knyshov".to_string(),
         company_address: "".to_string(),
@@ -85,7 +85,7 @@ fn make_test_info() -> json::InvoiceInfo {
         client_company: "XLucidity".to_string(),
         client_company_address: "".to_string(),
         terms: "".to_string(),
-        number: "".to_string(),
+        number: 0,
     }
 }
 #[warn(dead_code)]

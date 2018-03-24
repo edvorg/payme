@@ -180,7 +180,7 @@
     (fn []
       [:div.card.terms
        [:label "Any notes for terms and agreements section?"]
-       [:label "(Ctrl-Enter for line break)"]
+       [:label "(Ctrl-Enter for line break, empty line for paragraph)"]
        [:textarea {:type :string
                    :value @terms
                    :on-change (fn [e]

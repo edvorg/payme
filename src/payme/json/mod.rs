@@ -9,8 +9,8 @@ const MAX_BODY_LENGTH: usize = 1024 * 1024 * 10;
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct InvoiceInfo {
     pub task: String,
-    pub hours: String,
-    pub rate: String,
+    pub hours: i32,
+    pub rate: i32,
     pub email: String,
     pub company: String,
     pub company_address: String,
@@ -18,7 +18,7 @@ pub struct InvoiceInfo {
     pub client_company: String,
     pub client_company_address: String,
     pub terms: String,
-    pub number: String,
+    pub number: i32,
 }
 
 pub fn parse_invoice_info(request: &mut Request) -> Result<Option<InvoiceInfo>, bodyparser::BodyError> {

@@ -1,0 +1,58 @@
+$gray: #aaa;
+$black: black;
+$white: white;
+$green: #3bd69d;
+
+body {
+  color: $gray;
+  font-family: sans-serif;
+}
+
+h1 {
+  text-align: right;
+  text-transform: uppercase;
+  color: $black;
+}
+
+#number {
+  text-align: right;
+  color: $gray;
+}
+
+#company {
+  margin-bottom: 10px;
+  color: $black;
+}
+
+#client_company {
+  margin-bottom: 10px;
+  color: $black;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+th {
+  background: $green;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px;
+  color: $black;
+}
+
+#terms, .value {
+  color: $black;
+}
+
+#date, .balance {
+  text-align: right;
+}
+
+.bold {
+  font-weight: bolder;
+}

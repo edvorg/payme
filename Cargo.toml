@@ -24,6 +24,7 @@ sha2 = "0.7"
 hex-slice = "0.1.4"
 params = "0.8.0"
 reqwest = "0.8.5"
+chrono = "0.4"
 
 [dependencies.bodyparser]
 git = "https://github.com/iron/body-parser.git"

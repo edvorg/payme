@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      {{style}}
+    </style>
+  </head>
+  <body>
+    <h1 id="title">{{title}}</h1>
+    <div id="number">#{{number}}</div>
+    <div id="date">
+      <span>Date: </span>
+      <span class="value">{{date}}</span>
+    </div>
+    <div class="balance">
+      <span>Balance Due:</span>
+      <span class="value">{{amount}}</span>
+    </div>
+    <div id="company">
+      <div class="bold">{{company}}</div>
+      <div>{{company_address}}</div>
+    </div>
+    <div>Bill to:</div>
+    <div id="client_company">
+      <div class="bold">{{client_company}}</div>
+      <div>{{client_company_address}}</div>
+    </div>
+    <table id="items">
+      <tr>
+        <th><div>Item</div></th>
+        <th><div>Quantity</div></th>
+        <th><div>Rate</div></th>
+        <th><div>Amount</div></th>
+      </tr>
+      <tr>
+        <td><div class="bold">{{task}}</div></td>
+        <td><div>{{hours}}</div></td>
+        <td><div>{{rate}}</div></td>
+        <td><div>{{amount}}</div></td>
+      </tr>
+    </table>
+    <div class="balance">
+      <span>Subtotal:</span>
+      <span class="value">{{amount}}</span>
+    </div>
+    <div class="balance">
+      <span>Total:</span>
+      <span class="value">{{amount}}</span>
+    </div>
+    <div>Terms:</div>
+    <div id="terms">{{terms}}</div>
+  </body>
+</html>
