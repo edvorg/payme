@@ -1,6 +1,6 @@
-Hi, {{user}}.
+Hi, {{receiver}}.
 
-We have sent your invoice to **{{receiver}}**.
+This is copy of your invoice that you have sent to **{{user}}**.
 
 Once you have received his payment, please click the link below and we will send him your receipt.
 
@@ -8,4 +8,4 @@ Once you have received his payment, please click the link below and we will send
 
 Regards, Payme.
 
-[Unsubscribe]({{host}}/unsubsribe/{{invoice_id}}?token={{unsubscribe}})
+[Unsubscribe]({{host}}/unsubscribe?token={{unsubscribe_token}}&email={{unsubscribe_email}})

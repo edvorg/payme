@@ -98,14 +98,18 @@ fn from_hex_test_255() {
     assert_eq!(255, from_hex("ff"));
 }
 
-fn make_hmac(op: String, id: isize, invoice: json::InvoiceInfo) -> Hmac<Sha256> {
+fn make_hmac_generic(s: String) -> Hmac<Sha256> {
     let mut hmac = Hmac::<Sha256>::new(config::get_crypto_secret().as_bytes()).unwrap();
-    hmac.input(format!("{}{}{:?}", op, id, invoice).as_bytes());
+    hmac.input(s.as_bytes());
     hmac
 }
 
-fn gen_token(op: String, id: isize, invoice: json::InvoiceInfo) -> String {
-    let hmac = make_hmac(op, id, invoice);
+fn concat_digest(op: String, id: isize, invoice: json::InvoiceInfo) -> String {
+    format!("{}{}{:?}", op, id, invoice)
+}
+
+fn gen_token_generic(s: String) -> String {
+    let hmac = make_hmac_generic(s);
     let result = hmac.result();
     let code_bytes = result.code();
     let mut s = "".to_string();
@@ -115,6 +119,10 @@ fn gen_token(op: String, id: isize, invoice: json::InvoiceInfo) -> String {
     s
 }
 
+fn gen_token(op: String, id: isize, invoice: json::InvoiceInfo) -> String {
+    gen_token_generic(concat_digest(op, id, invoice))
+}
+
 #[test]
 fn gen_token_test() {
     assert_eq!("d7b9eb850129f83f14abaf617da614c4bd167dada9b9b45467bda38af079fa00", gen_token("".to_string(),
@@ -122,8 +130,8 @@ fn gen_token_test() {
                                                                                              make_test_info()));
 }
 
-fn is_token_valid(op: String, id: isize, invoice: json::InvoiceInfo, token: String) -> bool {
-    let hmac = make_hmac(op, id, invoice);
+fn is_token_valid_generic(s: String, token: String) -> bool {
+    let hmac = make_hmac_generic(s);
     let cs: Vec<char> = token.chars().collect();
     let mut v = Vec::new();
     for chunk in cs.chunks(2) {
@@ -133,6 +141,10 @@ fn is_token_valid(op: String, id: isize, invoice: json::InvoiceInfo, token: Stri
         Ok(_) => true,
         Err(_) => false,
     }
+}
+
+fn is_token_valid(op: String, id: isize, invoice: json::InvoiceInfo, token: String) -> bool {
+    is_token_valid_generic(concat_digest(op, id, invoice), token)
 }
 
 #[test]
@@ -147,7 +159,7 @@ fn is_token_valid_test() {
                             "1f4e576dc41d78e8d58236daf288c7322117791815fbedc9617a877e2e226025".to_string()));
 }
 
-pub fn gen_recipt_token(id: isize, invoice: json::InvoiceInfo) -> String {
+pub fn gen_invoice_token(id: isize, invoice: json::InvoiceInfo) -> String {
     gen_token("invoice".to_string(), id, invoice)
 }
 
@@ -163,10 +175,10 @@ pub fn is_receipt_token_valid(id: isize, invoice: json::InvoiceInfo, token: Stri
     is_token_valid("receipt".to_string(), id, invoice, token)
 }
 
-pub fn gen_unsubscribe_token(id: isize, invoice: json::InvoiceInfo) -> String {
-    gen_token("unsubscribe".to_string(), id, invoice)
+pub fn gen_unsubscribe_token(email: String) -> String {
+    gen_token_generic(email)
 }
 
-pub fn is_unsubscribe_token_valid(id: isize, invoice: json::InvoiceInfo, token: String) -> bool {
-    is_token_valid("unsubscribe".to_string(), id, invoice, token)
+pub fn is_unsubscribe_token_valid(email: String, token: String) -> bool {
+    is_token_valid_generic(email, token)
 }

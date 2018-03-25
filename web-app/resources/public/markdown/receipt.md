@@ -4,4 +4,4 @@ You received this email because **{{user}}** generated a receipt for you.
 
 Regards, Payme.
 
-[Unsubscribe]({{host}}/unsubsribe/{{invoice_id}}?token={{unsubscribe}})
+[Unsubscribe]({{host}}/unsubscribe?token={{unsubscribe_token}}&email={{unsubscribe_email}})

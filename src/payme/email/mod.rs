@@ -14,6 +14,7 @@ use payme::json;
 use payme::pdf;
 use payme::pdf::PdfType;
 use payme::pdf::get_pdf_title;
+use payme::crypto;
 
 lazy_static! {
     pub static ref TERA: Tera = {
@@ -71,21 +72,28 @@ fn render_email(template_id: String,
                 email_id: String,
                 user: String,
                 receiver: String,
-                invoice_id: String,
-                token: String) -> String {
+                unsubscribe_email: String,
+                token: String,
+                invoice_id: String) -> String {
+    let unsubscribe_token = crypto::gen_unsubscribe_token(unsubscribe_email.clone());
     render_markdown(email_id)
-        .map(|email| {
-            email.replace("{{user}}", &user)
+        .map(|email_html| {
+            email_html.replace("{{user}}", &user)
                 .replace("{{receiver}}", &receiver)
-                .replace("{{invoice_id}}", &invoice_id)
+                .replace("{{unsubscribe_email}}", &unsubscribe_email)
+                .replace("{{unsubscribe_token}}", &unsubscribe_token)
                 .replace("{{token}}", &token)
+                .replace("{{invoice_id}}", &invoice_id)
                 .replace("{{host}}", &config::get_host())
-        }).map(|email| {
+        }).map(|email_html| {
             let mut context = Context::new();
-            context.add("email", &email);
+            context.add("email", &email_html);
             context.add("user", &user);
-            context.add("invoice_id", &invoice_id);
+            context.add("receiver", &receiver);
+            context.add("unsubscribe_email", &unsubscribe_email);
+            context.add("unsubscribe_token", &unsubscribe_token);
             context.add("token", &token);
+            context.add("invoice_id", &invoice_id);
             context.add("host", &config::get_host());
             TERA.render(&format!("{}.html", template_id), &context)
                 .or_else(|e| {
@@ -103,6 +111,7 @@ fn render_email_test() {
                             "test user".to_string(),
                             "test receiver".to_string(),
                             "".to_string(),
+                            "".to_string(),
                             "".to_string()));
 }
 
@@ -111,14 +120,13 @@ pub fn send_invoice(invoice_id: isize, invoice: json::InvoiceInfo) {
                               "invoice".to_string(),
                               invoice.company.clone(),
                               invoice.client_company.clone(),
-                              format!("{}", invoice_id),
-                              "".to_string());
+                              invoice.client_email.clone(),
+                              "".to_string(),
+                              format!("{}", invoice_id));
     println!("sending email to {} {}", &invoice.client_email, &output);
     let mut command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")
-        .arg("-c")
-        .arg(&invoice.email)
         .arg("-s")
         .arg(format!("Invoice #{}", invoice.number))
         .arg("-a")
@@ -132,23 +140,47 @@ pub fn send_invoice(invoice_id: isize, invoice: json::InvoiceInfo) {
     command.wait().unwrap();
 }
 
-pub fn send_confirm(invoice_id: isize, invoice: json::InvoiceInfo, token: String) {
+pub fn send_invoice_copy(invoice_id: isize, invoice: json::InvoiceInfo, token: String) {
     let output = render_email("email".to_string(),
-                              "confirm".to_string(),
-                              invoice.company,
-                              invoice.client_company,
-                              format!("{}", invoice_id),
-                              token);
+                              "invoice_copy".to_string(),
+                              invoice.client_company.clone(),
+                              invoice.company.clone(),
+                              invoice.email.clone(),
+                              token,
+                              format!("{}", invoice_id));
     println!("sending email to {} {}", &invoice.email, &output);
     let mut command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")
-        .arg("-c")
-        .arg("payme@rust.cafe")
+        .arg("-s")
+        .arg(format!("Invoice #{}", invoice.number))
+        .arg("-a")
+        .arg(pdf::get_pdf_path(PdfType::Invoice, invoice_id, invoice.number))
+        .arg("--")
+        .arg(invoice.email)
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
+    write!(command.stdin.as_mut().unwrap(), "{}", output).unwrap();
+    command.wait().unwrap();
+}
+
+pub fn send_confirm_copy(invoice_id: isize, invoice: json::InvoiceInfo, token: String) {
+    let output = render_email("email".to_string(),
+                              "confirm_copy".to_string(),
+                              invoice.company,
+                              invoice.client_company,
+                              "payme@rust.cafe".to_string(),
+                              token,
+                              format!("{}", invoice_id));
+    println!("sending email to {} {}", &"payme@rust.cafe".to_string(), &output);
+    let mut command = Command::new("mutt")
+        .arg("-e")
+        .arg("set content_type=text/html")
         .arg("-s")
         .arg(format!("Invoice #{} confirmation", invoice.number))
         .arg("--")
-        .arg(invoice.email)
+        .arg("payme@rust.cafe".to_string())
         .stdin(Stdio::piped())
         .spawn()
         .unwrap();
@@ -161,20 +193,44 @@ pub fn send_receipt(invoice_id: isize, invoice: json::InvoiceInfo) {
                               "receipt".to_string(),
                               invoice.company.clone(),
                               invoice.client_company.clone(),
-                              format!("{}", invoice_id),
-                              "".to_string());
+                              invoice.client_email.clone(),
+                              "".to_string(),
+                              format!("{}", invoice_id));
     println!("sending email to {} {}", &invoice.client_email, &output);
     let mut command = Command::new("mutt")
         .arg("-e")
         .arg("set content_type=text/html")
-        .arg("-c")
-        .arg(&invoice.email)
         .arg("-s")
         .arg(format!("Receipt #{}", invoice.number))
         .arg("-a")
         .arg(pdf::get_pdf_path(PdfType::Receipt, invoice_id, invoice.number))
         .arg("--")
         .arg(invoice.client_email)
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
+    write!(command.stdin.as_mut().unwrap(), "{}", output).unwrap();
+    command.wait().unwrap();
+}
+
+pub fn send_receipt_copy(invoice_id: isize, invoice: json::InvoiceInfo) {
+    let output = render_email("email".to_string(),
+                              "receipt_copy".to_string(),
+                              invoice.client_company.clone(),
+                              invoice.company.clone(),
+                              invoice.email.clone(),
+                              "".to_string(),
+                              format!("{}", invoice_id));
+    println!("sending email to {} {}", &invoice.email, &output);
+    let mut command = Command::new("mutt")
+        .arg("-e")
+        .arg("set content_type=text/html")
+        .arg("-s")
+        .arg(format!("Receipt #{}", invoice.number))
+        .arg("-a")
+        .arg(pdf::get_pdf_path(PdfType::Receipt, invoice_id, invoice.number))
+        .arg("--")
+        .arg(invoice.email)
         .stdin(Stdio::piped())
         .spawn()
         .unwrap();

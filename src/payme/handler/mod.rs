@@ -86,10 +86,15 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
         thread::spawn(move || {
             let pdf_html = email::render_invoice(PdfType::Invoice, &info);
             pdf::render_pdf_file(PdfType::Invoice, id, info.number, &pdf_html);
-            email::send_invoice(id, info.clone());
-            pdf::delete_pdf_file(id);
+            if !redis::is_unsubscribed(info.client_email.clone()) {
+                email::send_invoice(id, info.clone());
+            }
             let token = crypto::gen_receipt_token(id, info.clone());
-            email::send_confirm(id, info.clone(), token);
+            if !redis::is_unsubscribed(info.email.clone()) {
+                email::send_invoice_copy(id, info.clone(), token.clone());
+            }
+            email::send_confirm_copy(id, info.clone(), token);
+            pdf::delete_pdf_file(id);
         });
         let mut response = Response::new();
         response.set_mut(status::Ok);
@@ -125,7 +130,12 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
                                     thread::spawn(move || {
                                         let pdf_html = email::render_invoice(PdfType::Receipt, &info);
                                         pdf::render_pdf_file(PdfType::Receipt, invoice_id, info.number, &pdf_html);
-                                        email::send_receipt(invoice_id, info.clone());
+                                        if !redis::is_unsubscribed(info.client_email.clone()) {
+                                            email::send_receipt(invoice_id, info.clone());
+                                        }
+                                        if !redis::is_unsubscribed(info.email.clone()) {
+                                            email::send_receipt_copy(invoice_id, info.clone());
+                                        }
                                         pdf::delete_pdf_file(invoice_id);
                                         redis::del_info(invoice_id);
                                     });
@@ -166,6 +176,43 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
             let mut response = Response::new();
             response.set_mut(status::Ok);
             response.set_mut("Unable to parse invoice_id");
+            Ok(response)
+        }
+    }
+}
+
+pub fn handle_unsubscribe_request(request: &mut Request) -> IronResult<Response> {
+    let map = request.get_ref::<Params>().unwrap();
+    match map.find(&["email"]) {
+        Some(&Value::String(ref email)) => {
+            match map.find(&["token"]) {
+                Some(&Value::String(ref token)) => {
+                    if crypto::is_unsubscribe_token_valid(email.clone(), token.to_string()) {
+                        println!("unsubsibed {}", &email.clone());
+                        redis::set_unsubscribed(email.clone());
+                        let mut response = Response::new();
+                        response.set_mut(status::Ok);
+                        response.set_mut("Unsubscribed");
+                        Ok(response)
+                    } else {
+                        let mut response = Response::new();
+                        response.set_mut(status::Ok);
+                        response.set_mut("Invalid token");
+                        Ok(response)
+                    }
+                },
+                _ => {
+                    let mut response = Response::new();
+                    response.set_mut(status::Ok);
+                    response.set_mut("Unable to parse token");
+                    Ok(response)
+                },
+            }
+        },
+        _ => {
+            let mut response = Response::new();
+            response.set_mut(status::Ok);
+            response.set_mut("Unable to parse email");
             Ok(response)
         }
     }

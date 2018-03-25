@@ -1,6 +1,6 @@
 Hi, {{receiver}}.
 
-You received this email because **{{user}}** generated an invoice for you.
+This is copy of your receipt that you have sent to **{{user}}**.
 
 Regards, Payme.
 

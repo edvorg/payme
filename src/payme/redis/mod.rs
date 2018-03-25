@@ -1,15 +1,22 @@
 extern crate redis;
 extern crate serde_json;
+extern crate uuid;
 
 use self::redis::{Commands, PipelineCommands};
 use self::redis::RedisError;
 use payme::json;
+use self::uuid::Uuid;
 
 static INVOICE_ID_KEY: &'static str = "invoice_id";
 static INVOICE_EXPIRATION_SECONDS: usize = 1 * 60 * 60 * 24 * 20;
+static UNSUBSCRIBE_EXPIRATION_SECONDS: usize = 1 * 60 * 60 * 24 * 30;
 
 fn get_confirmed_key(id: isize) -> String {
     format!("invoice:confirmed:{}", id)
+}
+
+fn get_unsubscribed_key(email: String) -> String {
+    format!("unsubscribed:{}", email)
 }
 
 fn get_info_key(id: isize) -> String {
@@ -133,4 +140,34 @@ fn del_info_test() {
     set_info(id, invoice);
     del_info(id);
     assert_eq!(None, get_info(id));
+}
+
+
+pub fn set_unsubscribed(email: String) -> bool {
+    let con = redis_con();
+    let _ : () = con.set(get_unsubscribed_key(email.clone()), true).unwrap();
+    let _ : () = con.expire(get_unsubscribed_key(email.clone()), UNSUBSCRIBE_EXPIRATION_SECONDS).unwrap();
+    true
+}
+
+pub fn is_unsubscribed(email: String) -> bool {
+    let con = redis_con();
+    con.get(get_unsubscribed_key(email))
+        .map(|s: String| {
+            s == "true"
+        }).unwrap_or(false)
+}
+
+#[test]
+fn set_unsubscribed_test() {
+    let my_uuid = format!("{}@testing.testing", Uuid::new_v4());
+    assert!(set_unsubscribed(my_uuid.clone()));
+}
+
+#[test]
+fn is_unsubscribed_test() {
+    let my_uuid = format!("{}@testing.testing", Uuid::new_v4());
+    assert!(!is_unsubscribed(my_uuid.clone()));
+    set_unsubscribed(my_uuid.clone());
+    assert!(is_unsubscribed(my_uuid.clone()));
 }

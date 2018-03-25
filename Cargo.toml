@@ -25,6 +25,7 @@ hex-slice = "0.1.4"
 params = "0.8.0"
 reqwest = "0.8.5"
 chrono = "0.4"
+uuid = { version = "0.6", features = ["v4"] }
 
 [dependencies.bodyparser]
 git = "https://github.com/iron/body-parser.git"
