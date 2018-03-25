@@ -42,7 +42,6 @@ pub fn render_pdf_file(pdf_type: PdfType, id: isize, number: i32, content: &Stri
     f.flush().unwrap();
 }
 
-pub fn delete_pdf_file(pdf_type: PdfType, id: isize, number: i32) {
-    fs::remove_file(Path::new(&get_pdf_path(pdf_type, id, number))).unwrap();
-    fs::remove_dir(Path::new(&get_pdf_dir_path(id))).unwrap();
+pub fn delete_pdf_file(id: isize) {
+    fs::remove_dir_all(Path::new(&get_pdf_dir_path(id))).unwrap_or(());
 }

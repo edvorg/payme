@@ -18,6 +18,7 @@ use payme::config;
 use payme::pdf;
 use payme::pdf::PdfType;
 use self::params::{Params, Value};
+use std::thread;
 
 pub fn handle_index_request(_request: &mut Request) -> IronResult<Response> {
     println!("getting index page");
@@ -82,12 +83,14 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
         println!("sending invoice, {:?}", res);
         let id = redis::get_new_invoice_id();
         redis::set_info(id, info.clone());
-        let pdf_html = email::render_invoice(PdfType::Invoice, &info);
-        pdf::render_pdf_file(PdfType::Invoice, id, info.number, &pdf_html);
-        email::send_invoice(id, info.clone());
-        pdf::delete_pdf_file(PdfType::Invoice, id, info.number);
-        let token = crypto::gen_receipt_token(id, info.clone());
-        email::send_confirm(id, info.clone(), token);
+        thread::spawn(move || {
+            let pdf_html = email::render_invoice(PdfType::Invoice, &info);
+            pdf::render_pdf_file(PdfType::Invoice, id, info.number, &pdf_html);
+            email::send_invoice(id, info.clone());
+            pdf::delete_pdf_file(id);
+            let token = crypto::gen_receipt_token(id, info.clone());
+            email::send_confirm(id, info.clone(), token);
+        });
         let mut response = Response::new();
         response.set_mut(status::Ok);
         response.set_mut("Invoiced");
@@ -112,18 +115,20 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
             let map = request.get_ref::<Params>().unwrap();
             match map.find(&["token"]) {
                 Some(&Value::String(ref token)) => {
-                    if !redis::is_confirmed(invoice_id) {
-                        println!("sending receipt");
-                        let info = redis::get_info(invoice_id);
-                        match info {
-                            Some(info) => {
-                                if crypto::is_receipt_token_valid(invoice_id, info.clone(), token.to_string()) {
+                    let info = redis::get_info(invoice_id);
+                    match info {
+                        Some(info) => {
+                            if crypto::is_receipt_token_valid(invoice_id, info.clone(), token.to_string()) {
+                                if !redis::is_confirmed(invoice_id) {
+                                    println!("sending receipt");
                                     redis::set_confirmed(invoice_id);
-                                    let pdf_html = email::render_invoice(PdfType::Receipt, &info);
-                                    pdf::render_pdf_file(PdfType::Receipt, invoice_id, info.number, &pdf_html);
-                                    email::send_receipt(invoice_id, info.clone());
-                                    pdf::delete_pdf_file(PdfType::Receipt, invoice_id, info.number);
-                                    redis::del_info(invoice_id);
+                                    thread::spawn(move || {
+                                        let pdf_html = email::render_invoice(PdfType::Receipt, &info);
+                                        pdf::render_pdf_file(PdfType::Receipt, invoice_id, info.number, &pdf_html);
+                                        email::send_receipt(invoice_id, info.clone());
+                                        pdf::delete_pdf_file(invoice_id);
+                                        redis::del_info(invoice_id);
+                                    });
                                     let mut response = Response::new();
                                     response.set_mut(status::Ok);
                                     response.set_mut("Confirmed");
@@ -131,22 +136,22 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
                                 } else {
                                     let mut response = Response::new();
                                     response.set_mut(status::Ok);
-                                    response.set_mut("Invalid token");
+                                    response.set_mut("Receipt already confirmed");
                                     Ok(response)
                                 }
-                            },
-                            None => {
+                            } else {
                                 let mut response = Response::new();
                                 response.set_mut(status::Ok);
-                                response.set_mut("Invoice not found");
+                                response.set_mut("Invalid token");
                                 Ok(response)
-                            },
-                        }
-                    } else {
-                        let mut response = Response::new();
-                        response.set_mut(status::Ok);
-                        response.set_mut("Receipt already confirmed");
-                        Ok(response)
+                            }
+                        },
+                        None => {
+                            let mut response = Response::new();
+                            response.set_mut(status::Ok);
+                            response.set_mut("Invoice not found");
+                            Ok(response)
+                        },
                     }
                 },
                 _ => {

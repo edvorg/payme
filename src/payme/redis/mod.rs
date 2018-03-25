@@ -2,9 +2,11 @@ extern crate redis;
 extern crate serde_json;
 
 use self::redis::{Commands, PipelineCommands};
+use self::redis::RedisError;
 use payme::json;
 
 static INVOICE_ID_KEY: &'static str = "invoice_id";
+static INVOICE_EXPIRATION_SECONDS: usize = 1 * 60 * 60 * 24 * 20;
 
 fn get_confirmed_key(id: isize) -> String {
     format!("invoice:confirmed:{}", id)
@@ -41,6 +43,7 @@ fn get_new_invoice_id_test() {
 pub fn set_confirmed(id: isize) -> bool {
     let con = redis_con();
     let _ : () = con.set(get_confirmed_key(id), true).unwrap();
+    let _ : () = con.expire(get_confirmed_key(id), INVOICE_EXPIRATION_SECONDS).unwrap();
     true
 }
 
@@ -69,6 +72,7 @@ fn is_confirmed_test() {
 pub fn set_info(id: isize, invoice: json::InvoiceInfo) -> json::InvoiceInfo {
     let con = redis_con();
     let _ : () = con.set(get_info_key(id), serde_json::to_string(&invoice).unwrap()).unwrap();
+    let _ : () = con.expire(get_info_key(id), INVOICE_EXPIRATION_SECONDS).unwrap();
     invoice
 }
 
@@ -99,10 +103,13 @@ fn set_info_test() {
 
 pub fn get_info(id: isize) -> Option<json::InvoiceInfo> {
     let con = redis_con();
-    let s: String = con.get(get_info_key(id)).unwrap_or("{}".to_string());
-    match serde_json::from_str(&s) {
-        Ok(i) => Some(i),
-        Err(_) => None,
+    let s: Result<String, RedisError> = con.get(get_info_key(id));
+    match s {
+        Ok(s) => match serde_json::from_str(&s) {
+            Ok(i) => Some(i),
+            Err(_) => None,
+        },
+        _ => None,
     }
 }
 
