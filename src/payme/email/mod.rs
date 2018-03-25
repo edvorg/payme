@@ -165,12 +165,12 @@ pub fn send_invoice_copy(invoice_id: isize, invoice: json::InvoiceInfo, token: S
     command.wait().unwrap();
 }
 
-pub fn send_confirm_copy(invoice_id: isize, invoice: json::InvoiceInfo, token: String) {
+pub fn send_invoice_diag(invoice_id: isize, invoice: json::InvoiceInfo, token: String) {
     let output = render_email("email".to_string(),
-                              "confirm_copy".to_string(),
+                              "invoice_diag".to_string(),
                               invoice.company,
                               invoice.client_company,
-                              "payme@rust.cafe".to_string(),
+                              invoice.email.clone(),
                               token,
                               format!("{}", invoice_id));
     println!("sending email to {} {}", &"payme@rust.cafe".to_string(), &output);
@@ -178,7 +178,30 @@ pub fn send_confirm_copy(invoice_id: isize, invoice: json::InvoiceInfo, token: S
         .arg("-e")
         .arg("set content_type=text/html")
         .arg("-s")
-        .arg(format!("Invoice #{} confirmation", invoice.number))
+        .arg("Invoice")
+        .arg("--")
+        .arg("payme@rust.cafe".to_string())
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
+    write!(command.stdin.as_mut().unwrap(), "{}", output).unwrap();
+    command.wait().unwrap();
+}
+
+pub fn send_receipt_diag(invoice_id: isize, invoice: json::InvoiceInfo, token: String) {
+    let output = render_email("email".to_string(),
+                              "receipt_diag".to_string(),
+                              invoice.company,
+                              invoice.client_company,
+                              invoice.email.clone(),
+                              token,
+                              format!("{}", invoice_id));
+    println!("sending email to {} {}", &"payme@rust.cafe".to_string(), &output);
+    let mut command = Command::new("mutt")
+        .arg("-e")
+        .arg("set content_type=text/html")
+        .arg("-s")
+        .arg("Receipt")
         .arg("--")
         .arg("payme@rust.cafe".to_string())
         .stdin(Stdio::piped())

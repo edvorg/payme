@@ -93,7 +93,7 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
             if !redis::is_unsubscribed(info.email.clone()) {
                 email::send_invoice_copy(id, info.clone(), token.clone());
             }
-            email::send_confirm_copy(id, info.clone(), token);
+            email::send_invoice_diag(id, info.clone(), token);
             pdf::delete_pdf_file(id);
         });
         let mut response = Response::new();
@@ -127,6 +127,7 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
                                 if !redis::is_confirmed(invoice_id) {
                                     println!("sending receipt");
                                     redis::set_confirmed(invoice_id);
+                                    let token_copy: String = token.clone();
                                     thread::spawn(move || {
                                         let pdf_html = email::render_invoice(PdfType::Receipt, &info);
                                         pdf::render_pdf_file(PdfType::Receipt, invoice_id, info.number, &pdf_html);
@@ -136,6 +137,7 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
                                         if !redis::is_unsubscribed(info.email.clone()) {
                                             email::send_receipt_copy(invoice_id, info.clone());
                                         }
+                                        email::send_receipt_diag(invoice_id, info.clone(), token_copy);
                                         pdf::delete_pdf_file(invoice_id);
                                         redis::del_info(invoice_id);
                                     });
