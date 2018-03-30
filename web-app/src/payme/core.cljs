@@ -12,13 +12,12 @@
 (enable-console-print!)
 
 (def app-state (atom {:messages []
-                      :params (or (when-let [d (cookies/get-raw "payme_invoice")]
+                      :params (or (when-let [d (cookies/get "payme_invoice")]
                                     (transit/from-transit (b64/decodeString d)))
                                   {})}))
 
 (defn write-cookie []
-  (cookies/set! "payme_invoice" (b64/encodeString (transit/to-transit (:params @app-state)))
-                :raw? true))
+  (cookies/set! "payme_invoice" (b64/encodeString (transit/to-transit (:params @app-state)))))
 
 (defn show-message [component]
   (swap! app-state update :messages conj component))
