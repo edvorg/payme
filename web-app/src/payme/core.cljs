@@ -182,14 +182,14 @@
        [:label "Any notes for terms and agreements section?"]
        [:label "(Ctrl-Enter for line break, empty line for paragraph)"]
        [:textarea {:type :string
-                   :value @terms
+                   :value (clojure.string/replace @terms "<ENTER>" "\n")
                    :on-change (fn [e]
                                 (reset! terms (.. e -target -value)))
                    :auto-focus true
                    :on-key-press (on-enter #(do
                                               (show-message [number-view])
                                               (cookies/set! "data" (:params @app-state) :raw? false))
-                                           #(swap! terms str "\n"))}]])))
+                                           #(swap! terms str "<ENTER>"))}]])))
 
 (defn number-view []
   (let [number (cursor app-state [:params :number])]
