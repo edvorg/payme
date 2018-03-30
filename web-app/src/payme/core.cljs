@@ -6,6 +6,7 @@
             [cljsjs.react-recaptcha]
             [reagent.cookies :as cookies]
             [goog.crypt.base64 :as b64]
+            [goog.crypt :as cr]
             [rocks.clj.transit.core :as transit])
   (:require-macros [cljs.core.async :refer [go]]))
 
@@ -13,11 +14,11 @@
 
 (def app-state (atom {:messages []
                       :params (or (when-let [d (cookies/get "payme_invoice")]
-                                    (transit/from-transit (b64/decodeString d)))
+                                    (transit/from-transit (cr/utf8ByteArrayToString (b64/decodeStringToByteArray d true))))
                                   {})}))
 
 (defn write-cookie []
-  (cookies/set! "payme_invoice" (b64/encodeString (transit/to-transit (:params @app-state)))))
+  (cookies/set! "payme_invoice" (b64/encodeByteArray (cr/stringToUtf8ByteArray (transit/to-transit (:params @app-state))) true)))
 
 (defn show-message [component]
   (swap! app-state update :messages conj component))
