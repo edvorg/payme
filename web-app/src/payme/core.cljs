@@ -4,13 +4,16 @@
             [cljs-http.client :as http]
             [clojure.string :as s]
             [cljsjs.react-recaptcha]
-            [reagent.cookies :as cookies])
+            [reagent.cookies :as cookies]
+            [goog.crypt.base64 :as b64])
   (:require-macros [cljs.core.async :refer [go]]))
 
 (enable-console-print!)
 
 (def app-state (atom {:messages []
-                      :params (cookies/get "data" {})}))
+                      :params (or (when-let [d (cookies/get "data")]
+                                    (b64/decodeString d))
+                                  {})}))
 
 (defn show-message [component]
   (swap! app-state update :messages conj component))
@@ -61,7 +64,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [client-email-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn client-email-view []
   (let [client-email (cursor app-state [:params :client-email])]
@@ -75,7 +79,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [task-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn task-view []
   (let [task (cursor app-state [:params :task])]
@@ -89,7 +94,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [hours-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn hours-view []
   (let [hours (cursor app-state [:params :hours])]
@@ -103,7 +109,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [rate-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn rate-view []
   (let [rate (cursor app-state [:params :rate])]
@@ -117,7 +124,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [company-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn company-view []
   (let [company (cursor app-state [:params :company])]
@@ -131,7 +139,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [company-address-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn company-address-view []
   (let [company-address (cursor app-state [:params :company-address])]
@@ -145,7 +154,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [client-company-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn client-company-view []
   (let [client-company (cursor app-state [:params :client-company])]
@@ -159,7 +169,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [client-company-address-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn client-company-address-view []
   (let [client-company-address (cursor app-state [:params :client-company-address])]
@@ -173,7 +184,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [terms-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn terms-view []
   (let [terms (cursor app-state [:params :terms])]
@@ -188,7 +200,8 @@
                    :auto-focus true
                    :on-key-press (on-enter #(do
                                               (show-message [number-view])
-                                              (cookies/set! "data" (:params @app-state) :raw? false))
+                                              (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                            :raw? true))
                                            #(swap! terms str "<ENTER>"))}]])))
 
 (defn number-view []
@@ -203,7 +216,8 @@
                 :auto-focus true
                 :on-key-press (on-enter #(do
                                            (show-message [ready-view])
-                                           (cookies/set! "data" (:params @app-state) :raw? false)))}]])))
+                                           (cookies/set! "data" (b64/encodeString (:params @app-state))
+                                                         :raw? true)))}]])))
 
 (defn send-invoice [g-recaptcha-response]
   (show-message [message-view "Sending your invoice..."])
