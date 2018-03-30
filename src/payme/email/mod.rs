@@ -60,7 +60,7 @@ pub fn render_invoice(pdf_type: PdfType, info: &json::InvoiceInfo) -> String {
     context.add("hours", &info.hours);
     context.add("rate", &format!("${}.00", info.rate));
     context.add("amount", &format!("${}.00", info.hours * info.rate));
-    context.add("terms", &format!("<p>{}</p>", info.terms.clone().replace("\n\n", "</p><p>")));
+    context.add("terms", &format!("<p>{}</p>", info.terms.clone().replace("<ENTER>", "</p><p>")));
     TERA.render("invoice.html", &context)
         .or_else(|e| {
             println!("error {}", e);
