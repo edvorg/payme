@@ -11,7 +11,7 @@
 (enable-console-print!)
 
 (def app-state (atom {:messages []
-                      :params (or (when-let [d (cookies/get "data")]
+                      :params (or (when-let [d (cookies/get-raw "data")]
                                     (b64/decodeString d))
                                   {})}))
 
