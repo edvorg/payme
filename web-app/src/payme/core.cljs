@@ -182,9 +182,9 @@
        [:label "Any notes for terms and agreements section?"]
        [:label "(Ctrl-Enter for line break, empty line for paragraph)"]
        [:textarea {:type :string
-                   :value (s/replace @terms "<ENTER>" "\n")
+                   :value (s/replace (str @terms) "<ENTER>" "\n")
                    :on-change (fn [e]
-                                (reset! terms (s/replace (.. e -target -value) "\n" "<ENTER>")))
+                                (reset! terms (s/replace (str (.. e -target -value)) "\n" "<ENTER>")))
                    :auto-focus true
                    :on-key-press (on-enter #(do
                                               (show-message [number-view])
