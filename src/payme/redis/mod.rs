@@ -5,6 +5,7 @@ extern crate uuid;
 use self::redis::{Commands, PipelineCommands};
 use self::redis::RedisError;
 use payme::json;
+use self::uuid::Uuid;
 
 static INVOICE_ID_KEY: &'static str = "invoice_id";
 static INVOICE_EXPIRATION_SECONDS: usize = 1 * 60 * 60 * 24 * 20;
