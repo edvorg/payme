@@ -40,12 +40,12 @@ pub fn get_new_invoice_id() -> isize {
     new_val
 }
 
-#[test]
-fn get_new_invoice_id_test() {
-    let a = get_new_invoice_id();
-    let b = get_new_invoice_id();
-    assert!(0 < a && a < b);
-}
+// #[test]
+// fn get_new_invoice_id_test() {
+//     let a = get_new_invoice_id();
+//     let b = get_new_invoice_id();
+//     assert!(0 < a && a < b);
+// }
 
 pub fn set_confirmed(id: isize) -> bool {
     let con = redis_con();
@@ -54,11 +54,11 @@ pub fn set_confirmed(id: isize) -> bool {
     true
 }
 
-#[test]
-fn set_confirmed_test() {
-    let id = get_new_invoice_id();
-    assert!(set_confirmed(id));
-}
+// #[test]
+// fn set_confirmed_test() {
+//     let id = get_new_invoice_id();
+//     assert!(set_confirmed(id));
+// }
 
 pub fn is_confirmed(id: isize) -> bool {
     let con = redis_con();
@@ -68,13 +68,13 @@ pub fn is_confirmed(id: isize) -> bool {
         }).unwrap_or(false)
 }
 
-#[test]
-fn is_confirmed_test() {
-    let id = get_new_invoice_id();
-    assert!(!is_confirmed(id));
-    set_confirmed(id);
-    assert!(is_confirmed(id));
-}
+// #[test]
+// fn is_confirmed_test() {
+//     let id = get_new_invoice_id();
+//     assert!(!is_confirmed(id));
+//     set_confirmed(id);
+//     assert!(is_confirmed(id));
+// }
 
 pub fn set_info(id: isize, invoice: json::InvoiceInfo) -> json::InvoiceInfo {
     let con = redis_con();
@@ -101,12 +101,12 @@ fn make_test_info() -> json::InvoiceInfo {
 }
 #[warn(dead_code)]
 
-#[test]
-fn set_info_test() {
-    let id = get_new_invoice_id();
-    let invoice = make_test_info();
-    assert_eq!(invoice, set_info(id, invoice.clone()));
-}
+// #[test]
+// fn set_info_test() {
+//     let id = get_new_invoice_id();
+//     let invoice = make_test_info();
+//     assert_eq!(invoice, set_info(id, invoice.clone()));
+// }
 
 pub fn get_info(id: isize) -> Option<json::InvoiceInfo> {
     let con = redis_con();
@@ -120,27 +120,27 @@ pub fn get_info(id: isize) -> Option<json::InvoiceInfo> {
     }
 }
 
-#[test]
-fn get_info_test() {
-    let id = get_new_invoice_id();
-    let invoice = make_test_info();
-    set_info(id, invoice.clone());
-    assert_eq!(invoice, get_info(id).unwrap());
-}
+// #[test]
+// fn get_info_test() {
+//     let id = get_new_invoice_id();
+//     let invoice = make_test_info();
+//     set_info(id, invoice.clone());
+//     assert_eq!(invoice, get_info(id).unwrap());
+// }
 
 pub fn del_info(id: isize) {
     let con = redis_con();
     let _ : () = con.del(get_info_key(id)).unwrap();
 }
 
-#[test]
-fn del_info_test() {
-    let id = get_new_invoice_id();
-    let invoice = make_test_info();
-    set_info(id, invoice);
-    del_info(id);
-    assert_eq!(None, get_info(id));
-}
+// #[test]
+// fn del_info_test() {
+//     let id = get_new_invoice_id();
+//     let invoice = make_test_info();
+//     set_info(id, invoice);
+//     del_info(id);
+//     assert_eq!(None, get_info(id));
+// }
 
 
 pub fn set_unsubscribed(email: String) -> bool {
@@ -158,16 +158,16 @@ pub fn is_unsubscribed(email: String) -> bool {
         }).unwrap_or(false)
 }
 
-#[test]
-fn set_unsubscribed_test() {
-    let my_uuid = format!("{}@testing.testing", Uuid::new_v4());
-    assert!(set_unsubscribed(my_uuid.clone()));
-}
+// #[test]
+// fn set_unsubscribed_test() {
+//     let my_uuid = format!("{}@testing.testing", Uuid::new_v4());
+//     assert!(set_unsubscribed(my_uuid.clone()));
+// }
 
-#[test]
-fn is_unsubscribed_test() {
-    let my_uuid = format!("{}@testing.testing", Uuid::new_v4());
-    assert!(!is_unsubscribed(my_uuid.clone()));
-    set_unsubscribed(my_uuid.clone());
-    assert!(is_unsubscribed(my_uuid.clone()));
-}
+// #[test]
+// fn is_unsubscribed_test() {
+//     let my_uuid = format!("{}@testing.testing", Uuid::new_v4());
+//     assert!(!is_unsubscribed(my_uuid.clone()));
+//     set_unsubscribed(my_uuid.clone());
+//     assert!(is_unsubscribed(my_uuid.clone()));
+// }

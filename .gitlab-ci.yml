@@ -1,0 +1,24 @@
+before_script:
+  - rm -rf ~/.rustup
+  - rm -rf ~/.cargo
+  - export PATH=~/.cargo/bin:${PATH}
+  - echo 'export PATH="${HOME}/.cargo/bin:$PATH"' >> ~/.profile
+  - sh -c "{  mv ${CI_PROJECT_DIR}/.cache/.rustup ~/.rustup && mv ${CI_PROJECT_DIR}/.cache/.cargo ~/.cargo ; } || ./scripts/fetch-rust.sh"
+  - ln -sf ~/.rustup ~/.multirust
+  - mkdir -p ${CI_PROJECT_DIR}/.cache
+  - cp -rf ~/.rustup ${CI_PROJECT_DIR}/.cache/.rustup
+  - cp -rf ~/.cargo ${CI_PROJECT_DIR}/.cache/.cargo
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - ${CI_PROJECT_DIR}/.cache/.rustup/
+    - ${CI_PROJECT_DIR}/.cache/.cargo/
+    - ${CI_PROJECT_DIR}/target/
+
+test:
+  script:
+    - rustup --version
+    - cargo --version
+    - rustc --version
+    - cargo test

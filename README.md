@@ -1,3 +1,6 @@
+[![pipeline status](https://gitlab.com/edvorg/payme/badges/master/pipeline.svg)](https://gitlab.com/edvorg/payme/commits/master)
+[![coverage report](https://gitlab.com/edvorg/payme/badges/master/coverage.svg)](https://gitlab.com/edvorg/payme/commits/master)
+
 # Payme
 
 Invoice your client in one click.
@@ -16,7 +19,7 @@ The usage is very simple. My invoicing flow is as follows:
 
 ![Invoicing](img/01.png)
 
-2. You'll receive an invoice copy by email with confirm link. 
+2. You'll receive an invoice copy by email with confirm link.
 
 ![Confirmation](img/02.png)
 
