@@ -124,13 +124,6 @@ fn gen_token(op: String, id: isize, invoice: json::InvoiceInfo) -> String {
     gen_token_generic(concat_digest(op, id, invoice))
 }
 
-#[test]
-fn gen_token_test() {
-    assert_eq!("d7b9eb850129f83f14abaf617da614c4bd167dada9b9b45467bda38af079fa00", gen_token("".to_string(),
-                                                                                             0,
-                                                                                             make_test_info()));
-}
-
 fn is_token_valid_generic(s: String, token: String) -> bool {
     let hmac = make_hmac_generic(s);
     let cs: Vec<char> = token.chars().collect();
@@ -146,18 +139,6 @@ fn is_token_valid_generic(s: String, token: String) -> bool {
 
 fn is_token_valid(op: String, id: isize, invoice: json::InvoiceInfo, token: String) -> bool {
     is_token_valid_generic(concat_digest(op, id, invoice), token)
-}
-
-#[test]
-fn is_token_valid_test() {
-    assert!(is_token_valid("".to_string(),
-                           0,
-                           make_test_info(),
-                           "d7b9eb850129f83f14abaf617da614c4bd167dada9b9b45467bda38af079fa00".to_string()));
-    assert!(!is_token_valid("".to_string(),
-                            0,
-                            make_test_info(),
-                            "1f4e576dc41d78e8d58236daf288c7322117791815fbedc9617a877e2e226025".to_string()));
 }
 
 pub fn gen_invoice_token(id: isize, invoice: json::InvoiceInfo) -> String {
