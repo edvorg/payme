@@ -97,6 +97,7 @@ fn make_test_info() -> json::InvoiceInfo {
         client_company_address: "".to_string(),
         terms: "".to_string(),
         number: 0,
+        date: None,
     }
 }
 #[warn(dead_code)]

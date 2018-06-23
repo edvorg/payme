@@ -1,67 +1,44 @@
-$color-green: #3bd69d;
-$color-black: black;
+$green: #3bd69d;
+$black: black;
 
 body {
   padding: 0px 0px 0px 0px;
   margin: 0px 0px 0px 0px;
 }
 
-.card {
-  background: $color-green;
-  margin: 8px 0px 0px 0px;
-  text-align: center;
-  animation: appear 0.75s ease-out;
-  padding: 2px 0px 2px 0px;
-  width: 100%;
-
-  @media (min-width: 800px) {
-    width: 400px;
-    border-radius: 4px;
-    border: 2px solid $color-green;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 4px;
-  }
-}
-
 .card > input, .card > textarea {
-  background: inherit;
-  border: 1px solid $color-black;
   padding: 4px 2px 4px 4px;
   margin: 2px 0px 2px 0px;
-  width: 100%;
-  box-sizing: border-box;
-
-  @media (min-width: 800px) {
-    border-radius: 4px;
-    margin: 0px 0px 0px 0px;
-  }
 }
 
 .card > textarea {
   resize: vertical;
-  min-height: 5em;
-}
-
-@keyframes appear {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-.card > label {
+  min-height: 15em;
   width: 100%;
-  display: block;
-}
-
-.error {
-  background: red;
 }
 
 #g-recaptcha > div {
   margin: auto;
   margin-top: 4px;
+}
+
+#date {
+}
+
+#date > .rdt {
+  display: inline;
+}
+
+#date > .rdt > .rdtPicker {
+  right: 0;
+}
+
+.send {
+  text-align: center;
+}
+
+.send-button {
+  height: 100%;
+  padding: 0px;
+  margin-left: 2px;
 }
