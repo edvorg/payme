@@ -48,7 +48,7 @@ pub fn render_invoice(pdf_type: PdfType, info: &json::InvoiceInfo) -> String {
     File::open(Path::new("web-app/resources/public/css/invoice.css")).unwrap().read_to_string(&mut style).unwrap();
     let mut context = Context::new();
     let date = Local::now();
-    context.add("date", &format!("{}", date.format("%b %d, %Y")));
+    context.add("date", &info.date.clone().unwrap_or_else(|| format!("{}", date.format("%b %d, %Y"))));
     context.add("style", &style);
     context.add("title", &title);
     context.add("number", &info.number);

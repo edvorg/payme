@@ -40,6 +40,17 @@ fn get_string_param(map: &params::Map, param: &str) -> String {
     }.unwrap_or(&"".to_string()).clone()
 }
 
+fn get_string_param_option(map: &params::Map, param: &str) -> Option<String> {
+    match map.find(&[param]) {
+        Some(&Value::String(ref token)) => {
+            Some(token.to_string())
+        },
+        _ => {
+            None
+        },
+    }
+}
+
 fn get_i32_param(map: &params::Map, param: &str) -> i32 {
     match map.find(&[param]) {
         Some(&Value::String(ref token)) => {
@@ -69,6 +80,7 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
         client_company_address: get_string_param(map, "client_company_address"),
         terms: get_string_param(map, "terms"),
         number: get_i32_param(map, "number"),
+        date: get_string_param_option(map, "date"),
     };
     let params = [("secret", &config::get_recaptcha_secret()),
                   ("response", &g_recaptcha_response)];
