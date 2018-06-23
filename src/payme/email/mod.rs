@@ -46,8 +46,8 @@ pub fn render_invoice(pdf_type: PdfType, info: &json::InvoiceInfo) -> String {
     let mut style = "".to_string();
     let date = Local::now();
     let datestr = match &pdf_type {
-        PdfType::Invoice => info.date.clone().unwrap_or_else(|| format!("{}", date.format("%b %d, %Y"))),
-        PdfType::Receipt => format!("{}", date.format("%b %d, %Y"))
+        &PdfType::Invoice => info.date.clone().unwrap_or_else(|| format!("{}", date.format("%b %d, %Y"))),
+        &PdfType::Receipt => format!("{}", date.format("%b %d, %Y"))
     };
     let title = get_pdf_title(pdf_type);
     File::open(Path::new("web-app/resources/public/css/invoice.css")).unwrap().read_to_string(&mut style).unwrap();
