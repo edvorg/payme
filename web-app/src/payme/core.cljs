@@ -253,11 +253,11 @@
         rate (cursor app-state [:params :rate])
         date (cursor app-state [:date])]
     (fn []
-      (let [total (* (.parseInt js/window @hours)
-                     (.parseInt js/window @rate))
+      (let [total (* (.parseFloat js/window @hours)
+                     (.parseFloat js/window @rate))
             total (if (js/isNaN total)
                     0
-                    total)]
+                    (.toFixed total 2))]
         [:div
          [:form
           (for [[i component] (map-indexed vector (:messages @app-state))]
@@ -277,7 +277,7 @@
                       :close-on-select true}]]
           [:div.balance
            [:span "Balance Due: "]
-           [:span.value total]]
+           [:span.value "$" total]]
           [:div#company
            [company-view]
            [company-address-view]]
@@ -301,13 +301,13 @@
              [:td
               [rate-view]]
              [:td
-              [:span.value total]]]]]
+              [:span.value "$" total]]]]]
           [:div.balance
            [:span "Subtotal: "]
-           [:span.value total]]
+           [:span.value "$" total]]
           [:div.balance
            [:span "Total: "]
-           [:span.value total]]
+           [:span.value "$" total]]
           [:div "Terms:"]
           [terms-view]]
          [:div.send
