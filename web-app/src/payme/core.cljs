@@ -26,20 +26,6 @@
 (defn focus-element [id]
   (.focus (.getElementById js/document id)))
 
-(declare message-view)
-(declare email-view)
-(declare client-email-view)
-(declare task-view)
-(declare hours-view)
-(declare rate-view)
-(declare company-view)
-(declare company-address-view)
-(declare client-company-view)
-(declare client-company-address-view)
-(declare terms-view)
-(declare number-view)
-(declare ready-view)
-
 (defn on-enter [f & [g]]
   (let [g (or g identity)]
     (fn [e]
@@ -66,7 +52,8 @@
                 :on-change (fn [e]
                              (reset! email (.. e -target -value))
                              (write-cookie))
-                :on-key-press (on-enter #(focus-element "client-email-view"))}]])))
+                :on-key-press (on-enter #(focus-element "client-email-view"))
+                :tab-index 9}]])))
 
 (defn client-email-view []
   (let [client-email (cursor app-state [:params :client-email])]
@@ -79,7 +66,8 @@
                 :on-change (fn [e]
                              (reset! client-email (.. e -target -value))
                              (write-cookie))
-                :on-key-press (on-enter #(focus-element "send-button-view"))}]])))
+                :on-key-press (on-enter #(focus-element "send-button-view"))
+                :tab-index 10}]])))
 
 (defn task-view []
   (let [task (cursor app-state [:params :task])]
@@ -92,7 +80,8 @@
                 :on-change (fn [e]
                              (reset! task (.. e -target -value))
                              (write-cookie))
-                :on-key-press (on-enter #(focus-element "hours-view"))}]])))
+                :on-key-press (on-enter #(focus-element "hours-view"))
+                :tab-index 5}]])))
 
 (defn hours-view []
   (let [hours (cursor app-state [:params :hours])]
@@ -105,7 +94,8 @@
                 :on-change (fn [e]
                              (reset! hours (.. e -target -value))
                              (write-cookie))
-                :on-key-press (on-enter #(focus-element "rate-view"))}]])))
+                :on-key-press (on-enter #(focus-element "rate-view"))
+                :tab-index 6}]])))
 
 (defn rate-view []
   (let [rate (cursor app-state [:params :rate])]
@@ -118,7 +108,8 @@
                 :on-change (fn [e]
                              (reset! rate (.. e -target -value))
                              (write-cookie))
-                :on-key-press (on-enter #(focus-element "number-view"))}]])))
+                :on-key-press (on-enter #(focus-element "number-view"))
+                :tab-index 7}]])))
 
 (defn company-view []
   (let [company (cursor app-state [:params :company])]
@@ -132,7 +123,8 @@
                              (reset! company (.. e -target -value))
                              (write-cookie))
                 :on-key-press (on-enter #(focus-element "company-address-view"))
-                :auto-focus true}]])))
+                :auto-focus true
+                :tab-index 1}]])))
 
 (defn company-address-view []
   (let [company-address (cursor app-state [:params :company-address])]
@@ -145,7 +137,8 @@
                 :on-change (fn [e]
                              (reset! company-address (.. e -target -value))
                              (write-cookie))
-                :on-key-press (on-enter #(focus-element "client-company-view"))}]])))
+                :on-key-press (on-enter #(focus-element "client-company-view"))
+                :tab-index 2}]])))
 
 (defn client-company-view []
   (let [client-company (cursor app-state [:params :client-company])]
@@ -158,7 +151,8 @@
                 :on-change (fn [e]
                              (reset! client-company (.. e -target -value))
                              (write-cookie))
-                :on-key-press (on-enter #(focus-element "client-company-address-view"))}]])))
+                :on-key-press (on-enter #(focus-element "client-company-address-view"))
+                :tab-index 3}]])))
 
 (defn client-company-address-view []
   (let [client-company-address (cursor app-state [:params :client-company-address])]
@@ -171,7 +165,8 @@
                 :on-change (fn [e]
                              (reset! client-company-address (.. e -target -value))
                              (write-cookie))
-                :on-key-press (on-enter #(focus-element "task-view"))}]])))
+                :on-key-press (on-enter #(focus-element "task-view"))
+                :tab-index 4}]])))
 
 (defn terms-view []
   (let [terms (cursor app-state [:params :terms])]
@@ -182,9 +177,7 @@
                    :value (s/replace (str @terms) "<ENTER>" "\n")
                    :on-change (fn [e]
                                 (reset! terms (s/replace (str (.. e -target -value)) "\n" "<ENTER>"))
-                                (write-cookie))
-                   ;; :on-key-press (on-enter #(focus-element "number-view"))
-                   }]])))
+                                (write-cookie))}]])))
 
 (defn number-view []
   (let [number (cursor app-state [:params :number])]
@@ -195,7 +188,8 @@
                :on-change (fn [e]
                             (reset! number (.. e -target -value))
                             (write-cookie))
-               :on-key-press (on-enter #(focus-element "email-view"))}])))
+               :on-key-press (on-enter #(focus-element "email-view"))
+               :tab-index 8}])))
 
 (defn send-invoice [verify message g-recaptcha-response]
   (go
@@ -240,7 +234,8 @@
   (let [verify (cursor app-state [:verify])]
     (fn []
       [:button.send-button {:id "send-button-view"
-                            :on-click #(reset! verify true)}
+                            :on-click #(reset! verify true)
+                            :tab-index 11}
        "Send"])))
 
 (defn send-view []
