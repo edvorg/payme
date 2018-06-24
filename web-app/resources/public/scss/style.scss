@@ -6,9 +6,36 @@ body {
   margin: 0px 0px 0px 0px;
 }
 
-.card > input, .card > textarea {
-  padding: 4px 2px 4px 4px;
-  margin: 2px 0px 2px 0px;
+input, textarea {
+  background-color: white;
+  color: black;
+  border-style: solid;
+  border-width: 0.5px;
+  border-color: gray;
+  margin: 2px;
+  padding: 3px;
+  box-sizing: border-box;
+}
+
+input:focus, textarea:focus {
+  border-color: $green;
+  border-width: 1.5px;
+  padding: 2px;
+}
+
+button {
+  background-color: $green;
+  border: none;
+  color: black;
+  padding: 4px;
+  margin: 2px;
+}
+
+button:focus {
+  border-style: ridge;
+  border-width: 1px;
+  padding: 3px;
+  border-color: black;
 }
 
 .card > textarea {
@@ -39,6 +66,4 @@ body {
 
 .send-button {
   height: 100%;
-  padding: 0px;
-  margin-left: 2px;
 }
