@@ -58,4 +58,6 @@
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :clean-targets ^{:protect false} ["resources/public/js/compiled"
                                                      "resources/public/css"
-                                                     :target-path]}})
+                                                     :target-path]}}
+
+  :give-me-my-css {:style :compressed})
