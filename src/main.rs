@@ -1,28 +1,33 @@
-extern crate iron;
-extern crate mount;
-extern crate staticfile;
-extern crate markdown;
 extern crate bodyparser;
+extern crate iron;
+extern crate markdown;
+extern crate mount;
 extern crate persistent;
+extern crate staticfile;
 
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate tera;
-#[macro_use] extern crate serde_derive;
-#[macro_use] extern crate mime;
-#[macro_use] extern crate router;
+#[macro_use]
+extern crate lazy_static;
+#[macro_use]
+extern crate tera;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate mime;
+#[macro_use]
+extern crate router;
 
 pub mod payme {
-    pub mod redis;
-    pub mod json;
-    pub mod handler;
-    pub mod router;
-    pub mod email;
-    pub mod crypto;
     pub mod config;
+    pub mod crypto;
+    pub mod email;
+    pub mod handler;
+    pub mod json;
     pub mod pdf;
+    pub mod redis;
+    pub mod router;
 }
 
-use iron::{Iron, Chain};
+use iron::{Chain, Iron};
 
 fn main() {
     println!("Serving on :3000");

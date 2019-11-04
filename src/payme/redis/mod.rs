@@ -2,10 +2,10 @@ extern crate redis;
 extern crate serde_json;
 extern crate uuid;
 
-use self::redis::{Commands, PipelineCommands};
 use self::redis::RedisError;
-use payme::json;
+use self::redis::{Commands, PipelineCommands};
 use self::uuid::Uuid;
+use payme::json;
 
 static INVOICE_ID_KEY: &'static str = "invoice_id";
 static INVOICE_EXPIRATION_SECONDS: usize = 1 * 60 * 60 * 24 * 20;
@@ -30,13 +30,14 @@ fn redis_con() -> redis::Connection {
 
 pub fn get_new_invoice_id() -> isize {
     let con = redis_con();
-    let (new_val,) : (isize,) = redis::transaction(&con, &[INVOICE_ID_KEY], |pipe| {
-        let old_val : isize = con.get(INVOICE_ID_KEY).unwrap_or(0);
+    let (new_val,): (isize,) = redis::transaction(&con, &[INVOICE_ID_KEY], |pipe| {
+        let old_val: isize = con.get(INVOICE_ID_KEY).unwrap_or(0);
         pipe.set(INVOICE_ID_KEY, old_val + 1)
             .ignore()
             .get(INVOICE_ID_KEY)
             .query(&con)
-    }).unwrap();
+    })
+    .unwrap();
     new_val
 }
 
@@ -49,8 +50,10 @@ pub fn get_new_invoice_id() -> isize {
 
 pub fn set_confirmed(id: isize) -> bool {
     let con = redis_con();
-    let _ : () = con.set(get_confirmed_key(id), true).unwrap();
-    let _ : () = con.expire(get_confirmed_key(id), INVOICE_EXPIRATION_SECONDS).unwrap();
+    let _: () = con.set(get_confirmed_key(id), true).unwrap();
+    let _: () = con
+        .expire(get_confirmed_key(id), INVOICE_EXPIRATION_SECONDS)
+        .unwrap();
     true
 }
 
@@ -63,9 +66,8 @@ pub fn set_confirmed(id: isize) -> bool {
 pub fn is_confirmed(id: isize) -> bool {
     let con = redis_con();
     con.get(get_confirmed_key(id))
-        .map(|s: String| {
-            s == "true"
-        }).unwrap_or(false)
+        .map(|s: String| s == "true")
+        .unwrap_or(false)
 }
 
 // #[test]
@@ -78,8 +80,12 @@ pub fn is_confirmed(id: isize) -> bool {
 
 pub fn set_info(id: isize, invoice: json::InvoiceInfo) -> json::InvoiceInfo {
     let con = redis_con();
-    let _ : () = con.set(get_info_key(id), serde_json::to_string(&invoice).unwrap()).unwrap();
-    let _ : () = con.expire(get_info_key(id), INVOICE_EXPIRATION_SECONDS).unwrap();
+    let _: () = con
+        .set(get_info_key(id), serde_json::to_string(&invoice).unwrap())
+        .unwrap();
+    let _: () = con
+        .expire(get_info_key(id), INVOICE_EXPIRATION_SECONDS)
+        .unwrap();
     invoice
 }
 
@@ -131,7 +137,7 @@ pub fn get_info(id: isize) -> Option<json::InvoiceInfo> {
 
 pub fn del_info(id: isize) {
     let con = redis_con();
-    let _ : () = con.del(get_info_key(id)).unwrap();
+    let _: () = con.del(get_info_key(id)).unwrap();
 }
 
 // #[test]
@@ -143,20 +149,23 @@ pub fn del_info(id: isize) {
 //     assert_eq!(None, get_info(id));
 // }
 
-
 pub fn set_unsubscribed(email: String) -> bool {
     let con = redis_con();
-    let _ : () = con.set(get_unsubscribed_key(email.clone()), true).unwrap();
-    let _ : () = con.expire(get_unsubscribed_key(email.clone()), UNSUBSCRIBE_EXPIRATION_SECONDS).unwrap();
+    let _: () = con.set(get_unsubscribed_key(email.clone()), true).unwrap();
+    let _: () = con
+        .expire(
+            get_unsubscribed_key(email.clone()),
+            UNSUBSCRIBE_EXPIRATION_SECONDS,
+        )
+        .unwrap();
     true
 }
 
 pub fn is_unsubscribed(email: String) -> bool {
     let con = redis_con();
     con.get(get_unsubscribed_key(email))
-        .map(|s: String| {
-            s == "true"
-        }).unwrap_or(false)
+        .map(|s: String| s == "true")
+        .unwrap_or(false)
 }
 
 // #[test]
