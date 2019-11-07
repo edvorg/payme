@@ -1,11 +1,11 @@
+extern crate hex_slice;
 extern crate hmac;
 extern crate sha2;
-extern crate hex_slice;
 
-use self::sha2::Sha256;
 use self::hmac::{Hmac, Mac};
-use payme::json;
+use self::sha2::Sha256;
 use payme::config;
+use payme::json;
 use std::u8;
 
 #[allow(dead_code)]

@@ -1,5 +1,5 @@
-extern crate iron;
 extern crate bodyparser;
+extern crate iron;
 extern crate persistent;
 
 use iron::prelude::*;
@@ -22,7 +22,9 @@ pub struct InvoiceInfo {
     pub date: Option<String>,
 }
 
-pub fn parse_invoice_info(request: &mut Request) -> Result<Option<InvoiceInfo>, bodyparser::BodyError> {
+pub fn parse_invoice_info(
+    request: &mut Request,
+) -> Result<Option<InvoiceInfo>, bodyparser::BodyError> {
     request.get::<bodyparser::Struct<InvoiceInfo>>()
 }
 
@@ -33,7 +35,9 @@ pub struct RecaptchaResponse {
     pub hostname: String,
 }
 
-pub fn parse_recaptcha_response(request: &mut Request) -> Result<Option<RecaptchaResponse>, bodyparser::BodyError> {
+pub fn parse_recaptcha_response(
+    request: &mut Request,
+) -> Result<Option<RecaptchaResponse>, bodyparser::BodyError> {
     request.get::<bodyparser::Struct<RecaptchaResponse>>()
 }
 

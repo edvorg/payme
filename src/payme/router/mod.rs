@@ -1,10 +1,10 @@
 extern crate mount;
 extern crate staticfile;
 
-use std::path::Path;
-use router::Router;
 use mount::Mount;
+use router::Router;
 use staticfile::Static;
+use std::path::Path;
 
 use payme::handler;
 
@@ -38,8 +38,17 @@ pub fn make_mount() -> Mount {
     mount.mount("/invoice/", make_invoice_router());
     mount.mount("/receipt/", make_receipt_router());
     mount.mount("/unsubscribe/", make_unsubscribe_router());
-    mount.mount("/js/", Static::new(Path::new("web-app/resources/public/js/")));
-    mount.mount("/css/", Static::new(Path::new("web-app/resources/public/css/")));
-    mount.mount("/scss/", Static::new(Path::new("web-app/resources/public/scss/")));
+    mount.mount(
+        "/js/",
+        Static::new(Path::new("web-app/resources/public/js/")),
+    );
+    mount.mount(
+        "/css/",
+        Static::new(Path::new("web-app/resources/public/css/")),
+    );
+    mount.mount(
+        "/scss/",
+        Static::new(Path::new("web-app/resources/public/scss/")),
+    );
     mount
 }

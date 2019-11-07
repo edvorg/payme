@@ -2,22 +2,22 @@ extern crate iron;
 extern crate params;
 extern crate reqwest;
 
+use self::params::{Params, Value};
+use self::reqwest::Client;
 use iron::prelude::*;
 use iron::status;
-use std::fs::File;
-use std::path::Path;
-use std::i32;
-use self::reqwest::Client;
-use std::str::FromStr;
-use router::Router;
-use payme::json;
-use payme::redis;
-use payme::email;
-use payme::crypto;
 use payme::config;
+use payme::crypto;
+use payme::email;
+use payme::json;
 use payme::pdf;
 use payme::pdf::PdfType;
-use self::params::{Params, Value};
+use payme::redis;
+use router::Router;
+use std::fs::File;
+use std::i32;
+use std::path::Path;
+use std::str::FromStr;
 use std::thread;
 
 pub fn handle_index_request(_request: &mut Request) -> IronResult<Response> {
@@ -31,38 +31,29 @@ pub fn handle_index_request(_request: &mut Request) -> IronResult<Response> {
 
 fn get_string_param(map: &params::Map, param: &str) -> String {
     match map.find(&[param]) {
-        Some(&Value::String(ref token)) => {
-            Some(token)
-        },
-        _ => {
-            None
-        },
-    }.unwrap_or(&"".to_string()).clone()
+        Some(&Value::String(ref token)) => Some(token),
+        _ => None,
+    }
+    .unwrap_or(&"".to_string())
+    .clone()
 }
 
 fn get_string_param_option(map: &params::Map, param: &str) -> Option<String> {
     match map.find(&[param]) {
-        Some(&Value::String(ref token)) => {
-            Some(token.to_string())
-        },
-        _ => {
-            None
-        },
+        Some(&Value::String(ref token)) => Some(token.to_string()),
+        _ => None,
     }
 }
 
 fn get_i32_param(map: &params::Map, param: &str) -> i32 {
     match map.find(&[param]) {
-        Some(&Value::String(ref token)) => {
-            match i32::from_str(token) {
-                Ok(v) => Some(v),
-                _ => None
-            }
+        Some(&Value::String(ref token)) => match i32::from_str(token) {
+            Ok(v) => Some(v),
+            _ => None,
         },
-        _ => {
-            None
-        },
-    }.unwrap_or(0)
+        _ => None,
+    }
+    .unwrap_or(0)
 }
 
 pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
@@ -82,10 +73,13 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
         number: get_i32_param(map, "number"),
         date: get_string_param_option(map, "date"),
     };
-    let params = [("secret", &config::get_recaptcha_secret()),
-                  ("response", &g_recaptcha_response)];
+    let params = [
+        ("secret", &config::get_recaptcha_secret()),
+        ("response", &g_recaptcha_response),
+    ];
     let client = Client::new();
-    let res = client.post("https://www.google.com/recaptcha/api/siteverify")
+    let res = client
+        .post("https://www.google.com/recaptcha/api/siteverify")
         .form(&params)
         .send()
         .unwrap()
@@ -122,11 +116,12 @@ pub fn handle_invoice_request(request: &mut Request) -> IronResult<Response> {
 }
 
 pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
-    let invoice_id = request.extensions.get::<Router>().unwrap()
+    let invoice_id = request
+        .extensions
+        .get::<Router>()
+        .unwrap()
         .find("invoice_id")
-        .and_then(|invoice_id| {
-            invoice_id.parse::<isize>().ok()
-        });
+        .and_then(|invoice_id| invoice_id.parse::<isize>().ok());
     match invoice_id {
         Some(invoice_id) => {
             let map = request.get_ref::<Params>().unwrap();
@@ -135,21 +130,35 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
                     let info = redis::get_info(invoice_id);
                     match info {
                         Some(info) => {
-                            if crypto::is_receipt_token_valid(invoice_id, info.clone(), token.to_string()) {
+                            if crypto::is_receipt_token_valid(
+                                invoice_id,
+                                info.clone(),
+                                token.to_string(),
+                            ) {
                                 if !redis::is_confirmed(invoice_id) {
                                     println!("sending receipt");
                                     redis::set_confirmed(invoice_id);
                                     let token_copy: String = token.clone();
                                     thread::spawn(move || {
-                                        let pdf_html = email::render_invoice(PdfType::Receipt, &info);
-                                        pdf::render_pdf_file(PdfType::Receipt, invoice_id, info.number, &pdf_html);
+                                        let pdf_html =
+                                            email::render_invoice(PdfType::Receipt, &info);
+                                        pdf::render_pdf_file(
+                                            PdfType::Receipt,
+                                            invoice_id,
+                                            info.number,
+                                            &pdf_html,
+                                        );
                                         if !redis::is_unsubscribed(info.client_email.clone()) {
                                             email::send_receipt(invoice_id, info.clone());
                                         }
                                         if !redis::is_unsubscribed(info.email.clone()) {
                                             email::send_receipt_copy(invoice_id, info.clone());
                                         }
-                                        email::send_receipt_diag(invoice_id, info.clone(), token_copy);
+                                        email::send_receipt_diag(
+                                            invoice_id,
+                                            info.clone(),
+                                            token_copy,
+                                        );
                                         pdf::delete_pdf_file(invoice_id);
                                         redis::del_info(invoice_id);
                                     });
@@ -169,23 +178,23 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
                                 response.set_mut("Invalid token");
                                 Ok(response)
                             }
-                        },
+                        }
                         None => {
                             let mut response = Response::new();
                             response.set_mut(status::Ok);
                             response.set_mut("Invoice not found");
                             Ok(response)
-                        },
+                        }
                     }
-                },
+                }
                 _ => {
                     let mut response = Response::new();
                     response.set_mut(status::Ok);
                     response.set_mut("Unable to parse token");
                     Ok(response)
-                },
+                }
             }
-        },
+        }
         _ => {
             let mut response = Response::new();
             response.set_mut(status::Ok);
@@ -198,29 +207,27 @@ pub fn handle_receipt_request(request: &mut Request) -> IronResult<Response> {
 pub fn handle_unsubscribe_request(request: &mut Request) -> IronResult<Response> {
     let map = request.get_ref::<Params>().unwrap();
     match map.find(&["email"]) {
-        Some(&Value::String(ref email)) => {
-            match map.find(&["token"]) {
-                Some(&Value::String(ref token)) => {
-                    if crypto::is_unsubscribe_token_valid(email.clone(), token.to_string()) {
-                        println!("unsubsibed {}", &email.clone());
-                        redis::set_unsubscribed(email.clone());
-                        let mut response = Response::new();
-                        response.set_mut(status::Ok);
-                        response.set_mut("Unsubscribed");
-                        Ok(response)
-                    } else {
-                        let mut response = Response::new();
-                        response.set_mut(status::Ok);
-                        response.set_mut("Invalid token");
-                        Ok(response)
-                    }
-                },
-                _ => {
+        Some(&Value::String(ref email)) => match map.find(&["token"]) {
+            Some(&Value::String(ref token)) => {
+                if crypto::is_unsubscribe_token_valid(email.clone(), token.to_string()) {
+                    println!("unsubsibed {}", &email.clone());
+                    redis::set_unsubscribed(email.clone());
                     let mut response = Response::new();
                     response.set_mut(status::Ok);
-                    response.set_mut("Unable to parse token");
+                    response.set_mut("Unsubscribed");
                     Ok(response)
-                },
+                } else {
+                    let mut response = Response::new();
+                    response.set_mut(status::Ok);
+                    response.set_mut("Invalid token");
+                    Ok(response)
+                }
+            }
+            _ => {
+                let mut response = Response::new();
+                response.set_mut(status::Ok);
+                response.set_mut("Unable to parse token");
+                Ok(response)
             }
         },
         _ => {

@@ -1,10 +1,10 @@
 extern crate reqwest;
 
 use self::reqwest::Client;
-use std::io::Write;
-use std::fs::File;
-use std::path::Path;
 use std::fs;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 
 #[derive(Clone)]
 pub enum PdfType {
@@ -24,13 +24,19 @@ fn get_pdf_dir_path(id: isize) -> String {
 }
 
 pub fn get_pdf_path(pdf_type: PdfType, id: isize, number: i32) -> String {
-    format!("{}/{}-{}.pdf", get_pdf_dir_path(id), get_pdf_title(pdf_type), number)
+    format!(
+        "{}/{}-{}.pdf",
+        get_pdf_dir_path(id),
+        get_pdf_title(pdf_type),
+        number
+    )
 }
 
 pub fn render_pdf_file(pdf_type: PdfType, id: isize, number: i32, content: &String) {
     let client = Client::new();
     let mut buf: Vec<u8> = vec![];
-    client.post("http://127.0.0.1:5001/pdf")
+    client
+        .post("http://127.0.0.1:5001/pdf")
         .body(content.clone())
         .send()
         .unwrap()
